@@ -1,0 +1,426 @@
+================================================================================
+LAPORAN PERBANDINGAN ARTEFAK V4 VS V5 & STATUS PIPELINE INFERENCE
+Repository : favera-ai-model/
+Tanggal    : 5 Agustus 2026
+Dibuat oleh: Antigravity AI
+================================================================================
+
+================================================================================
+BAGIAN 1: PERBANDINGAN ARTEFAK V4 vs V5
+================================================================================
+
+1.1 IDENTITAS MODEL
+--------------------------------------------------------------------------------
+Atribut                   | V4 (MoMTSim V1)                  | V5 (MoMTSim V2)
+--------------------------+----------------------------------+----------------------------------
+model_name                | global_ranker_v4_momtsim_v1      | global_ranker_v5_momtsim_v2
+model_version             | 4.0.0                            | 5.0.0
+experiment_version        | candidate_v4_transfer_global     | candidate_v5_transfer_global
+dataset_version           | momtsim_v1                       | momtsim_v2
+previous_model            | -                                | global_ranker_v4_momtsim_v1
+model_type                | LightGBM                         | LightGBM
+decision_scope            | TRANSFER only                    | TRANSFER only
+selected_configuration    | flexible                         | conservative
+best_iteration            | 58 iterasi                       | 260 iterasi
+calibration_threshold     | 0.30330                          | 0.89900
+strong_signal_percentile  | >= 0.99                          | >= 0.99 (eksplisit di metadata)
+created_at_utc            | 2026-08-02T10:39:32              | 2026-08-04T18:55:39
+
+
+1.2 UKURAN FILE ARTEFAK
+--------------------------------------------------------------------------------
+File                             | V4 (bytes)   | V5 (bytes)   | Keterangan
+---------------------------------+--------------+--------------+--------------
+global_ranker_vN.joblib          | 410,278      | 458,886      | Model LightGBM
+feature_contract_vN.json         | 4,051        | 4,155        | Kontrak fitur
+calibration_score_reference_vN   | 440,656      | 2,128,320    | +382% lebih besar
+model_metadata_vN.json           | 910          | 1,024        | Info model
+top_fraction_thresholds_vN.json  | 570          | 571          | Threshold top-k
+calibration_threshold_vN.json    | 343          | 347          | Threshold eksperimen
+evaluation_metrics_vN.json       | 1,584        | 4,511        | Metrik evaluasi
+benchmark_results_vN.csv         | 610          | 577          | Hasil benchmark
+feature_importance_vN.csv        | 3,190        | 3,565        | Importance fitur
+feature_diagnostic_vN.csv        | 8,345        | 8,676        | Diagnostik fitur
+top_k_metrics_vN.csv             | 314          | 257          | Metrik top-k
+
+Catatan: calibration_score_reference V5 jauh lebih besar karena dibuat dari split
+kalibrasi dataset V2 yang jauh lebih besar (266,024 skor vs ~55,000 pada V4).
+
+
+1.3 FEATURE CONTRACT
+--------------------------------------------------------------------------------
+Atribut                  | V4                               | V5
+-------------------------+----------------------------------+----------------------------------
+feature_contract_version | 4.0.0                            | 5.0.0
+base_feature_version     | candidate_v3                     | candidate_v3 (sama)
+interaction_features     | (tidak tercatat)                 | candidate_v4_interactions_reused
+dataset_version          | (tidak tercatat)                 | momtsim_v2
+model_scope              | TRANSFER                         | TRANSFER (sama)
+feature_count            | 56                               | 56 (jumlah sama)
+base_features            | 41 fitur                         | 41 fitur (identik)
+derived_features         | 15 fitur                         | 15 fitur (identik)
+removed_constant_features| []                               | [] (sama)
+unsupported_prod_features| 6 fitur bal. penerima            | 6 fitur bal. penerima (sama)
+
+Kesimpulan: Daftar 56 numeric_features V4 dan V5 adalah IDENTIK.
+Ini berarti tidak ada perubahan skema input model antara V4 dan V5.
+Kode adapter dan feature builder yang dibangun untuk V4 kompatibel penuh dengan V5.
+
+
+1.4 PERFORMA MODEL - EVALUASI TEST SET
+--------------------------------------------------------------------------------
+Metrik                 | V4 (MoMTSim V1)       | V5 (MoMTSim V2)       | Perubahan
+-----------------------+-----------------------+-----------------------+--------------
+status                 | TARGET NOT ACHIEVED   | TARGET ACHIEVED       | UPGRADE
+rows (test set)        | 63,651                | 283,713               | +346%
+fraud_rate (test)      | 28.49%                | 82.22%                | Dataset berbeda
+PR-AUC                 | 0.3519                | 0.9916                | +181.8%
+threshold              | 0.3033                | 0.8990                | Lebih tinggi
+precision              | 31.11%                | 100.00%               | +221.6%
+recall                 | 80.01%                | 91.13%                | +13.9%
+F1-score               | 0.4480                | 0.9536                | +112.8%
+false_positive_rate    | 70.61%                | 0.00%                 | -100%
+alert_rate             | 73.29%                | 74.93%                | ~sama
+true_positive          | 14,511                | 212,578               | -
+false_positive         | 32,138                | 0                     | Turun ke 0
+false_negative         | 3,626                 | 20,701                | Naik
+true_negative          | 13,376                | 50,434                | -
+
+CATATAN PENTING INTERPRETASI V5:
+Fraud rate dataset V2 pada test set mencapai 82.22%, jauh di atas V1 (28.49%).
+Precision 100% dan FPR 0% pada V5 perlu diinterpretasi dengan hati-hati
+mengingat distribusi label yang sangat tidak seimbang ke arah fraud. Metrik ini
+mencerminkan karakteristik dataset sintetis V2, bukan performa pada data riil.
+
+
+1.5 PERFORMA TOP-K (PRECISION AT TOP-FRACTION)
+--------------------------------------------------------------------------------
+Top Fraction | V4 Precision@K | V5 Precision@K | V4 Recall@K | V5 Recall@K
+-------------+----------------+----------------+-------------+-------------
+Top 1%       | 88.85%         | 100.00%        | 3.12%       | 1.22%
+Top 5%       | 41.31%         | 100.00%        | 7.25%       | 6.08%
+Top 10%      | 36.46%         | 100.00%        | 12.80%      | 12.16%
+Top 20%      | 33.13%         | 100.00%        | 23.26%      | 24.32%
+
+Kesimpulan: V5 menunjukkan precision sempurna di semua top-k fraction,
+namun ini perlu dikonfirmasi ulang pada data riil sebelum dinyatakan production-ready.
+
+
+1.6 TOP-FRACTION THRESHOLDS (RAW PROBABILITY)
+--------------------------------------------------------------------------------
+Threshold            | V4 (kalibrasi V1) | V5 (kalibrasi V2)
+---------------------+-------------------+-------------------
+Top 1%               | 0.3624            | 0.9999571
+Top 2%               | 0.3412            | 0.9999571
+Top 5%               | 0.3227            | 0.9999571
+Top 10%              | 0.3122            | 0.9999571
+
+Interpretasi: Pada V5, threshold untuk masuk "top 1%" hampir mendekati 1.0,
+mencerminkan distribusi skor model yang sangat terkumpul di nilai tinggi
+akibat tingginya fraud rate pada dataset V2.
+
+
+1.7 TOP 5 FEATURE IMPORTANCE (GAIN)
+--------------------------------------------------------------------------------
+Rank | V4 Feature                    | V4 Gain%   | V5 Feature                    | V5 Gain%
+-----+-------------------------------+------------+-------------------------------+----------
+  1  | initiator_amount_max_prior     | 37.66%     | amount_log_ratio_to_prior_max | 64.82%
+  2  | amount                         | 22.45%     | initiator_amount_max_prior    | 32.23%
+  3  | new_bal_initiator              | 17.86%     | initiator_amount_std_prior    |  0.99%
+  4  | amount_vs_initiator_mean       |  6.51%     | new_bal_initiator             |  0.73%
+  5  | recipient_tx_count_prior       |  2.45%     | amount                        |  0.24%
+
+Perubahan kunci:
+- V4: Top fitur adalah nilai maksimum historis dan nominal transaksi absolut.
+- V5: Dominan pada RASIO antara nominal transaksi dengan riwayat maksimum
+  (amount_log_ratio_to_prior_max: 64.82%). Ini lebih robust terhadap skala
+  nominal yang sangat bervariasi pada dataset V2.
+- V5 menambahkan is_balance_nearly_depleted (rank 6, 0.18%) dan
+  initiator_new_balance_negative (rank 8, 0.12%) sebagai kontributor baru.
+
+
+================================================================================
+BAGIAN 2: STATUS PIPELINE INFERENCE
+================================================================================
+
+2.1 STATUS LOADING ARTEFAK V5
+--------------------------------------------------------------------------------
+Status  : BERHASIL (ArtifactGlobalRanker)
+Artifact: artifacts/global_ranker_v5_momtsim_v2/
+  - global_ranker_v5.joblib             : OK (terbaca, 56 fitur)
+  - feature_contract_v5.json            : OK (56 fitur, identik dengan V4)
+  - calibration_score_reference_v5.npy  : OK (266,024 skor kalibrasi)
+  - model_metadata_v5.json              : OK (versi 5.0.0)
+Config  : config/global_ranker_v5.json  : OK (strong_percentile_threshold = 0.99)
+
+Catatan: Warning sklearn InconsistentVersionWarning (1.6.1 -> 1.8.0) muncul saat
+load joblib. Tidak memblokir eksekusi tetapi perlu diselesaikan sebelum deploy
+production dengan melakukan re-export model di sklearn 1.8.0.
+
+
+2.2 STATUS PERUBAHAN KODE PIPELINE (V4 -> V5)
+--------------------------------------------------------------------------------
+File                          | Perubahan                              | Status
+------------------------------+----------------------------------------+-------
+app/factory.py                | Default GLOBAL_ARTIFACT_DIR -> V5      | DONE
+                              | Default GLOBAL_CONFIG_PATH  -> V5      | DONE
+                              | Orchestrator version -> 0.3.0          | DONE
+app/global_ranker.py          | from_artifact_directory: auto-detect   | DONE
+                              | filename (glob pattern v*, sorted)     |
+app/main.py                   | FastAPI version string -> 0.3.0        | DONE
+config/global_ranker_v5.json  | Config baru untuk V5                   | DONE (baru)
+
+
+2.3 STATUS API CONTRACT COMPLIANCE
+--------------------------------------------------------------------------------
+Endpoint             : POST /v1/model1/evaluate-batch
+Pure function        : assess_batch(payload) -> AnomalyBatchResponse
+Schema validation    : Pydantic BatchEvaluateResponse (extra="forbid") : PASS
+Contract check run   : 5 Agustus 2026, verified via model_validate()
+
+Field response yang diverifikasi:
+  request_id            : OK
+  assessments           : OK (list)
+  processing_ms         : OK (float)
+
+Per-assessment fields:
+  transaction_id        : OK
+  anomaly_score         : OK (float, 0.0-1.0)
+  risk_band             : OK ("normal" | "unusual" | "needs_confirmation")
+  reason_codes          : OK (list of str)
+  reason_details        : OK (list, 5-field per item)
+  recommended_action    : OK (str)
+  personal_baseline_status : OK ("available" | "insufficient_history" | "not_applicable")
+  global_model_score    : OK (float | null)
+  personal_model_score  : OK (float | null)
+  rule_score            : OK (float | null)
+  model_version         : OK ("0.3.0")
+  preprocessing_version : OK ("0.1.0")
+
+Field tambahan di luar kontrak : TIDAK ADA (extra="forbid" aktif)
+
+
+2.4 STATUS TEST SUITE
+--------------------------------------------------------------------------------
+Dijalankan    : python -m pytest -q
+Hasil         : 14 PASSED, 0 FAILED
+Waktu         : ~3 detik
+Warnings      : 2 (sklearn InconsistentVersionWarning, non-blocking)
+
+
+2.5 KNOWN GAPS (SISA PEKERJAAN SEBELUM FULL PRODUCTION)
+--------------------------------------------------------------------------------
+Gap #1 - GLOBAL FEATURE BUILDER BELUM TERSEDIA
+  Status     : BLOCKER untuk Global Score aktif pada data riil
+  Dampak     : global_model_score selalu null saat menerima raw canonical
+               transaction (karena backend tidak boleh mengirim global_features)
+  Cara atasi : Ekstrak logika feature engineering dari notebook V5 ke
+               app/feature_builder.py setelah feature contract final diaudit.
+
+Gap #2 - SKLEARN VERSION MISMATCH
+  Status     : WARNING non-blocking (tapi berisiko di production)
+  Pesan      : InconsistentVersionWarning: 1.6.1 vs 1.8.0
+  Cara atasi : Re-export model di environment sklearn 1.8.0 (re-train atau
+               joblib.dump ulang dari loaded model).
+
+Gap #3 - COLD START SCORE V5 SANGAT TINGGI (99.97% fraud rate)
+  Status     : Diketahui, valid dari dataset sintetis
+  Dampak     : Model V5 sangat agresif pada transaksi cold-start karena
+               dataset V2 memiliki 99.97% fraud pada segmen cold-start.
+               Pada data riil, ini akan menghasilkan terlalu banyak false alert
+               jika digunakan tanpa global feature builder yang proper.
+
+
+================================================================================
+BAGIAN 3: PANDUAN MENCOBA MODEL DENGAN DATA RIIL
+================================================================================
+
+3.1 APAKAH SUDAH BISA DILAKUKAN?
+--------------------------------------------------------------------------------
+JAWABAN: SEBAGIAN - dengan keterbatasan berikut:
+
+  BISA dilakukan:
+  - Personal Anomaly V0 berjalan penuh pada canonical transaction format
+  - Rule Engine V0 berjalan penuh
+  - Score Fusion V0 berjalan dengan redistribusi bobot otomatis
+  - Endpoint POST /v1/model1/evaluate-batch berfungsi sepenuhnya
+  - Batch inference temporal-safe dengan multiple transactions
+
+  BELUM BISA (tapi aman dengan fallback):
+  - Global Ranker V5 belum bisa menghitung skor dari raw canonical transaction
+    karena feature builder belum tersedia. Skor global = null secara otomatis.
+    Fusion tetap berjalan dengan personal + rule saja.
+
+
+3.2 FORMAT INPUT DATA RIIL
+--------------------------------------------------------------------------------
+Kirim data riil ke endpoint /v1/model1/evaluate-batch dalam format JSON:
+
+  POST /v1/model1/evaluate-batch
+  Content-Type: application/json
+
+  {
+    "request_id": "<uuid-unik>",
+    "user_id": "<uuid-pengguna>",
+    "family_id": "<uuid-keluarga>",
+    "current_transactions": [
+      {
+        "transaction_id": "<uuid>",
+        "transaction_at": "2026-08-05T10:00:00+07:00",
+        "direction": "expense",
+        "amount": 500000.0,
+        "currency": "IDR",
+        "description": "Transfer ke rekening X",
+        "counterparty_name": "Nama Penerima",
+        "counterparty_id": "<id-penerima>",
+        "category": "TRANSFER",
+        "payment_channel": "mobile_banking",
+        "balance_before": 2000000.0,
+        "balance_after": 1500000.0,
+        "source_provider": "mandiri"
+      }
+    ],
+    "historical_transactions": [
+      {
+        "transaction_id": "<uuid>",
+        "transaction_at": "2026-08-04T09:00:00+07:00",
+        "direction": "expense",
+        "amount": 50000.0,
+        "currency": "IDR",
+        "counterparty_id": "<id-penerima-lama>",
+        "category": "PAYMENT",
+        "balance_before": 2500000.0,
+        "balance_after": 2450000.0,
+        "source_provider": "mandiri"
+      }
+      // ... min. 8 transaksi historis untuk personal baseline aktif
+    ],
+    "household_context": {
+      "essential_budget_remaining": 1000000.0,
+      "unconfirmed_transaction_count": 0,
+      "large_transaction_threshold": 1000000.0,
+      "active_goal_progress": 0.5
+    }
+  }
+
+Field wajib         : transaction_at, amount
+Field opsional      : semua lainnya (null-safe)
+Min histori         : 8 transaksi untuk personal_baseline_status = "available"
+Arah transaksi valid: "income" | "expense" | "transfer"
+Provider valid      : "mandiri" | "bri" | "gopay" | "other"
+
+
+3.3 CARA MENJALANKAN SERVER LOKAL
+--------------------------------------------------------------------------------
+  # Aktifkan virtual environment (Windows)
+  .venv\Scripts\activate
+
+  # Jalankan FastAPI server
+  uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+  # Akses dokumentasi interaktif (Swagger UI)
+  http://127.0.0.1:8000/docs
+
+  # Health check
+  GET http://127.0.0.1:8000/health
+
+  # Version check (verifikasi V5 aktif)
+  GET http://127.0.0.1:8000/version
+  -> global_ranker_adapter: "ArtifactGlobalRanker"
+
+
+3.4 CARA COBA VIA PYTHON (tanpa server HTTP)
+--------------------------------------------------------------------------------
+  from app.factory import assess_batch
+
+  payload = {
+      "request_id": "test-001",
+      "user_id": "user-xyz",
+      "current_transactions": [
+          {
+              "transaction_id": "txn-001",
+              "transaction_at": "2026-08-05T10:00:00+07:00",
+              "amount": 500000.0,
+              "counterparty_id": "recipient-A",
+              "direction": "transfer",
+              "balance_before": 2000000.0,
+              "balance_after": 1500000.0,
+          }
+      ],
+      "historical_transactions": [
+          {
+              "transaction_at": f"2026-08-04T{8+i:02d}:00:00+07:00",
+              "amount": 50000.0,
+              "counterparty_id": "recipient-known",
+          }
+          for i in range(8)
+      ],
+  }
+
+  result = assess_batch(payload)
+  print(result)
+
+
+3.5 INTERPRETASI OUTPUT
+--------------------------------------------------------------------------------
+  anomaly_score    : 0.0 - 1.0. Semakin tinggi = semakin tidak biasa.
+  risk_band        : "normal" / "unusual" / "needs_confirmation"
+  reason_codes     : Daftar kode alasan seperti:
+                       - AMOUNT_ABOVE_PERSONAL_BASELINE
+                       - NEW_RECIPIENT_HIGH_AMOUNT
+                       - LARGE_BALANCE_IMPACT
+                       - BALANCE_NEARLY_DEPLETED
+                       - HIGH_TRANSACTION_VELOCITY
+                       - UNUSUAL_TRANSACTION_TIME
+                       - REPEATED_SAME_AMOUNT
+                       - LIMITED_USER_HISTORY
+  personal_baseline_status:
+    "available"           : Histori >= 8 transaksi, skor personal aktif
+    "insufficient_history": Histori < 8 transaksi, skor personal = null
+    "not_applicable"      : Tidak berlaku
+  global_model_score:
+    null (saat ini)       : Feature builder V5 belum tersedia.
+                            Personal + Rule tetap aktif dan fusion berjalan.
+
+
+3.6 VARIABEL ENVIRONMENT (opsional, untuk override default)
+--------------------------------------------------------------------------------
+  FAVERA_AI_ROOT       : Path root repository (default: auto-detect)
+  GLOBAL_ARTIFACT_DIR  : Path folder artefak global (default: V5)
+  GLOBAL_CONFIG_PATH   : Path config global ranker (default: V5)
+  PERSONAL_CONFIG_PATH : Path config personal anomaly
+  RULE_CONFIG_PATH     : Path config rule engine
+  FUSION_CONFIG_PATH   : Path config fusion
+
+  Contoh rollback ke V4 (sementara):
+  $env:GLOBAL_ARTIFACT_DIR = "artifacts/global_ranker_v4_momtsim_v1"
+  $env:GLOBAL_CONFIG_PATH  = "config/global_ranker_v4.json"
+
+
+================================================================================
+RINGKASAN EKSEKUTIF
+================================================================================
+
+KEPUTUSAN PIPELINE:
+  Pipeline inference dengan artefak V5 (MoMTSim V2) : AKTIF
+  API contract compliance                            : PASS (14/14 test)
+  Cold-start handling                                : PASS (null personal score)
+  Temporal safety                                    : PASS
+  Global ranker loading V5                           : PASS (score path aktif)
+
+STATUS SKOR GLOBAL:
+  global_model_score pada canonical transaction      : null (expected)
+  Alasan: Feature builder belum diekstrak ke codebase.
+  Personal + Rule fusion tetap berjalan normal.
+
+SIAP UNTUK DATA RIIL?
+  Personal anomaly + Rule engine                     : YES, siap sekarang
+  Global extreme-risk signal                         : NOT YET (feature builder)
+  Full production inference                          : NOT YET (pending feature builder + sklearn fix)
+
+NEXT STEP:
+  1. Ekstrak feature engineering V5 dari notebook ke app/feature_builder.py
+  2. Re-export model di sklearn 1.8.0 untuk eliminasi InconsistentVersionWarning
+  3. Validasi feature builder terhadap feature_contract_v5.json
+  4. Lakukan end-to-end test dengan data riil e-statement
+================================================================================

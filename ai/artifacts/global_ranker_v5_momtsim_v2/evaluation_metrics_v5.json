@@ -1,0 +1,155 @@
+{
+  "model": "LightGBM Candidate V5 Final Test",
+  "status": "TARGET ACHIEVED",
+  "rows": 283713,
+  "fraud_rate": 0.8222358510184588,
+  "pr_auc": 0.9916256936211829,
+  "threshold": 0.8990049739916696,
+  "precision": 1.0,
+  "precision_lift": 1.2161960570818635,
+  "recall": 0.9112607650067087,
+  "f1": 0.9535703151458876,
+  "false_positive_rate": 0.0,
+  "alert_rate": 0.749271270615023,
+  "true_positive": 212578,
+  "false_positive": 0,
+  "false_negative": 20701,
+  "true_negative": 50434,
+  "pr_auc_lift": 1.2060112586831506,
+  "top_k_metrics": [
+    {
+      "top_fraction": 0.01,
+      "top_percent": 1.0,
+      "transactions": 2838,
+      "true_positive": 2838,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.012165690010673915
+    },
+    {
+      "top_fraction": 0.05,
+      "top_percent": 5.0,
+      "transactions": 14186,
+      "true_positive": 14186,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.06081130320346023
+    },
+    {
+      "top_fraction": 0.1,
+      "top_percent": 10.0,
+      "transactions": 28372,
+      "true_positive": 28372,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.12162260640692046
+    },
+    {
+      "top_fraction": 0.2,
+      "top_percent": 20.0,
+      "transactions": 56743,
+      "true_positive": 56743,
+      "precision_at_k": 1.0,
+      "recall_at_k": 0.2432409261013636
+    }
+  ],
+  "baseline_candidate_v4_momtsim_v1": {
+    "fraud_rate": 0.28494446277356206,
+    "pr_auc": 0.3518926766516589,
+    "precision": 0.31106776136680314,
+    "precision_lift": 1.0916785619870093,
+    "recall": 0.8000771902740255,
+    "f1": 0.4479671533973389,
+    "false_positive_rate": 0.7061124049742936,
+    "alert_rate": 0.7328871502411588
+  },
+  "class_prior_baseline": [
+    {
+      "split": "train",
+      "rows": 1704101,
+      "fraud_rate": 0.9124999046418023,
+      "random_ranker_pr_auc": 0.9124999046418023,
+      "all_positive_precision": 0.9124999046418023,
+      "all_positive_recall": 1.0,
+      "all_positive_alert_rate": 1.0,
+      "all_positive_false_positive_rate": 1.0
+    },
+    {
+      "split": "validation",
+      "rows": 257109,
+      "fraud_rate": 0.8609966978985566,
+      "random_ranker_pr_auc": 0.8609966978985566,
+      "all_positive_precision": 0.8609966978985566,
+      "all_positive_recall": 1.0,
+      "all_positive_alert_rate": 1.0,
+      "all_positive_false_positive_rate": 1.0
+    },
+    {
+      "split": "calibration",
+      "rows": 266024,
+      "fraud_rate": 0.8400633025591676,
+      "random_ranker_pr_auc": 0.8400633025591676,
+      "all_positive_precision": 0.8400633025591676,
+      "all_positive_recall": 1.0,
+      "all_positive_alert_rate": 1.0,
+      "all_positive_false_positive_rate": 1.0
+    },
+    {
+      "split": "test",
+      "rows": 283713,
+      "fraud_rate": 0.8222358510184588,
+      "random_ranker_pr_auc": 0.8222358510184588,
+      "all_positive_precision": 0.8222358510184588,
+      "all_positive_recall": 1.0,
+      "all_positive_alert_rate": 1.0,
+      "all_positive_false_positive_rate": 1.0
+    }
+  ],
+  "cold_start_segment_metrics": [
+    {
+      "model": "cold_start",
+      "status": "TARGET ACHIEVED",
+      "rows": 170841,
+      "fraud_rate": 0.999970733020762,
+      "pr_auc": 1.0,
+      "threshold": 0.8990049739916696,
+      "precision": 1.0,
+      "precision_lift": 1.0000292678358191,
+      "recall": 1.0,
+      "f1": 1.0,
+      "false_positive_rate": 0.0,
+      "alert_rate": 0.999970733020762,
+      "true_positive": 170836,
+      "false_positive": 0,
+      "false_negative": 0,
+      "true_negative": 5,
+      "segment": "cold_start",
+      "segment_share": 0.602161339099724,
+      "median_prior_transactions": 0.0,
+      "pr_auc_lift": 1.0000292678358191
+    },
+    {
+      "model": "history_available",
+      "status": "TARGET NOT ACHIEVED",
+      "rows": 112872,
+      "fraud_rate": 0.5532195761570629,
+      "pr_auc": 0.9045183152443039,
+      "threshold": 0.8990049739916696,
+      "precision": 1.0,
+      "precision_lift": 1.8076005316848966,
+      "recall": 0.6684816552696059,
+      "f1": 0.8013053702548351,
+      "false_positive_rate": 0.0,
+      "alert_rate": 0.3698171379970232,
+      "true_positive": 41742,
+      "false_positive": 0,
+      "false_negative": 20701,
+      "true_negative": 50429,
+      "segment": "history_available",
+      "segment_share": 0.397838660900276,
+      "median_prior_transactions": 1674.0,
+      "pr_auc_lift": 1.6350077875543307
+    }
+  ],
+  "global_signal_policy": {
+    "strong_signal_min_percentile": 0.99,
+    "otherwise": "NO_STRONG_GLOBAL_SIGNAL"
+  }
+}

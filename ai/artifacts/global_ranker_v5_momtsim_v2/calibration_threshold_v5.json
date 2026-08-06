@@ -1,0 +1,8 @@
+{
+  "threshold_version": "5.0.0",
+  "threshold": 0.8990049739916696,
+  "selection_split": "calibration",
+  "selection_strategy": "ALL_TARGETS_ACHIEVED",
+  "recommended_product_usage": false,
+  "usage_note": "Threshold eksperimen global classifier pada MoMTSim V2. Global ranker V5 direkomendasikan sebagai ranking signal dan input score fusion."
+}

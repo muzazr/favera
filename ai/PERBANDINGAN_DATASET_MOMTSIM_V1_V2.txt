@@ -1,0 +1,127 @@
+================================================================================
+LAPORAN PERBANDINGAN KOLOM DAN STRUKTUR DATASET MoMTSim V1 VS MoMTSim V2
+Repository : favera-ai-model/
+Tanggal    : 4 Agustus 2026
+================================================================================
+
+1. RINGKASAN SKEMA KOLOM (SCHEMA & DATA TYPES)
+--------------------------------------------------------------------------------
+Kedua dataset (MoMTSim V1 dan MoMTSim V2) memiliki 10 kolom raw yang 100% IDENTIK
+dalam nama kolom, urutan, dan tipe data:
+
+  No | Nama Kolom       | Tipe Data | Null Count (V1) | Null Count (V2)
+  ---+------------------+-----------+-----------------+-----------------
+   1 | step             | int64     | 0 (0.0%)        | 0 (0.0%)
+   2 | transactionType  | str/obj   | 0 (0.0%)        | 0 (0.0%)
+   3 | amount           | float64   | 0 (0.0%)        | 0 (0.0%)
+   4 | initiator        | int64     | 0 (0.0%)        | 0 (0.0%)
+   5 | oldBalInitiator  | float64   | 0 (0.0%)        | 0 (0.0%)
+   6 | newBalInitiator  | float64   | 0 (0.0%)        | 0 (0.0%)
+   7 | recipient        | str/obj   | 0 (0.0%)        | 0 (0.0%)
+   8 | oldBalRecipient  | float64   | 0 (0.0%)        | 0 (0.0%)
+   9 | newBalRecipient  | float64   | 0 (0.0%)        | 0 (0.0%)
+  10 | isFraud          | int64     | 0 (0.0%)        | 0 (0.0%)
+
+Kesimpulan Skema: Tidak ada kolom baru yang ditambahkan, dan tidak ada kolom yang 
+dihapus pada data mentah V2 dibanding V1.
+
+
+2. PERBEDAAAN UKURAN DATA & VOLUME BARIS
+--------------------------------------------------------------------------------
+- MoMTSim V1: 1,720,181 baris (Ukuran file: ~156.56 MB)
+- MoMTSim V2: 4,225,958 baris (Ukuran file: ~366.40 MB)
+- Selisih Volume: Dataset V2 bertambah +2,505,777 baris (+145.67% lebih besar).
+
+
+3. PERBEDAAAN DISTRIBUSI LABEL FRAUD (isFraud)
+--------------------------------------------------------------------------------
+- MoMTSim V1:
+  * Non-Fraud (0) : 1,544,663 baris (89.80%)
+  * Fraud (1)     :   175,518 baris (10.20%)
+  * Fraud Rate    : 10.20% (Imbalanced Dataset)
+
+- MoMTSim V2:
+  * Non-Fraud (0) : 1,992,840 baris (47.16%)
+  * Fraud (1)     : 2,233,118 baris (52.84%)
+  * Fraud Rate    : 52.84% (Balanced / Over-sampled Dataset)
+
+Implikasi: Perubahan fraud rate dari 10.20% ke 52.84% secara signifikan mengubah 
+prior probability. Model Global Ranker V2 yang dilatih pada V2 memerlukan 
+re-kalibrasi threshold percentile khusus untuk penentuan extreme-risk ranker.
+
+
+4. PERBEDAAAN DISTRIBUSI TIPE TRANSAKSI (transactionType)
+--------------------------------------------------------------------------------
+- MoMTSim V1:
+  * PAYMENT    :   667,245 (38.79%)
+  * TRANSFER   :   569,328 (33.10%)
+  * DEPOSIT    :   384,431 (22.35%)
+  * WITHDRAWAL :    93,785 ( 5.45%)
+  * DEBIT      :     5,392 ( 0.31%)
+
+- MoMTSim V2:
+  * TRANSFER   : 2,510,947 (59.42%)
+  * PAYMENT    : 1,677,798 (39.70%)
+  * WITHDRAWAL :    27,064 ( 0.64%)
+  * DEPOSIT    :     8,824 ( 0.21%)
+  * DEBIT      :     1,325 ( 0.03%)
+
+Implikasi: Pada V2, transaksi didominasi oleh TRANSFER (59.42%) dan PAYMENT (39.70%), 
+sehingga total keduanya mencakup 99.12% dari seluruh dataset.
+
+
+5. KONSENTRASI FRAUD PADA TIPE TRANSAKSI
+--------------------------------------------------------------------------------
+Pada KEDUA dataset, transaksi fraud 100% TERKONSENTRASI HANYA PADA TIPE TRANSFER!
+Tipe PAYMENT, DEPOSIT, WITHDRAWAL, dan DEBIT bernilai 0% fraud di V1 maupun V2.
+
+- Fraud Rate khusus pada tipe TRANSFER:
+  * MoMTSim V1 : 30.83% dari transaksi TRANSFER adalah fraud (175,518 / 569,328)
+  * MoMTSim V2 : 88.94% dari transaksi TRANSFER adalah fraud (2,233,118 / 2,510,947)
+
+
+6. PERBEDAAAN ENTITAS UNIQUE & RENTANG WAKTU (step)
+--------------------------------------------------------------------------------
+- Initiator Unique (User ID):
+  * V1: 13,462 pengguna
+  * V2: 1,653,981 pengguna (~122 kali lipat lebih banyak user unik!)
+
+- Recipient Unique:
+  * V1: 16,731 entitas
+  * V2: 22,517 entitas (+34.6% lebih banyak penerima)
+
+- Rentang Waktu (step):
+  * V1: 0 s.d. 143 (144 langkah waktu / ~6 hari)
+  * V2: 0 s.d. 192 (193 langkah waktu / ~8 hari)
+
+
+7. RINGKASAN STATISTIK NUMERIK (NUMERIC SUMMARY)
+--------------------------------------------------------------------------------
+- Nominal Transaksi (amount):
+  * V1: Mean = Rp 52,538.68 | Median = Rp 17,298.25 | Max = Rp 2,142,928.28
+  * V2: Mean = Rp 53,021.39 | Median = Rp 596.69    | Max = Rp 765,480,500.00
+  * Catatan: V2 memiliki rentang nominal maksimum yang jauh lebih ekstrem.
+
+- Saldo Inisiator (oldBalInitiator):
+  * V1: Mean = Rp 2,433,758 | Max = Rp 12,244,691
+  * V2: Mean = Rp 22,460,550 | Max = Rp 640,923,100
+
+- Saldo Penerima (oldBalRecipient):
+  * V1: Mean = Rp 108,508   | Max = Rp 11,885,539
+  * V2: Mean = Rp 1,685,005  | Max = Rp 381,013,400
+
+
+8. REKOMENDASI TEKNIS UNTUK EKSPERIMEN V2 NOTEBOOK
+--------------------------------------------------------------------------------
+1. KONTRAK FITUR RAW: Tidak perlu mengubah kode parser/schema raw CSV karena 10 
+   nama kolom dan tipe datanya identik.
+2. HYPERPARAMETER & SAMPLING: Karena dataset V2 jauh lebih besar (4.2M baris) dan 
+   balanced (52.8% fraud), alokasi memori dan strategi temporal split (berdasar 
+   kolom `step`) perlu diperhatikan agar tidak terjadi temporal/user leakage.
+3. KALIBRASI PERCENTILE: Threshold kalibrasi V1 tidak boleh langsung dipakai pada V2. 
+   Model V2 harus menghasilkan referensi skor kalibrasi baru 
+   (calibration_score_reference_v5.npy) untuk extreme-risk percentile >= 0.99.
+4. FEATURE ENGINEERING: Variansi nominal dan saldo pada V2 jauh lebih besar, 
+   sehingga penanganan outlier dan robust scaling pada feature engineering sangat 
+   disarankan.
+================================================================================
