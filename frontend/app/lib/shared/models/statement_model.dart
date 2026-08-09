@@ -1,0 +1,208 @@
+enum StatementImportStatus {
+  uploaded,
+  passwordRequired,
+  parsing,
+  reviewRequired,
+  confirmed,
+  failed,
+  cancelled,
+}
+
+enum DraftStatus {
+  pending,
+  validated,
+  deleted,
+}
+
+class StatementImport {
+  final String id;
+  final String fileName;
+  final int fileSizeBytes;
+  final StatementImportStatus status;
+  final String providerHint;
+  final bool requiresPassword;
+  final int totalDetected;
+  final int needsReviewCount;
+  final DateTime uploadedAt;
+  final String? errorMessage;
+
+  const StatementImport({
+    required this.id,
+    required this.fileName,
+    required this.fileSizeBytes,
+    required this.status,
+    required this.providerHint,
+    this.requiresPassword = false,
+    this.totalDetected = 0,
+    this.needsReviewCount = 0,
+    required this.uploadedAt,
+    this.errorMessage,
+  });
+
+  factory StatementImport.fromJson(Map<String, dynamic> json) {
+    return StatementImport(
+      id: json['id'] as String,
+      fileName: json['file_name'] as String,
+      fileSizeBytes: (json['file_size_bytes'] as num).toInt(),
+      status: _parseStatus(json['status'] as String),
+      providerHint: json['provider_hint'] as String? ?? 'mandiri',
+      requiresPassword: json['requires_password'] as bool? ?? false,
+      totalDetected: (json['total_detected'] as num? ?? 0).toInt(),
+      needsReviewCount: (json['needs_review_count'] as num? ?? 0).toInt(),
+      uploadedAt: DateTime.parse(json['uploaded_at'] as String),
+      errorMessage: json['error_message'] as String?,
+    );
+  }
+
+  static StatementImportStatus _parseStatus(String statusStr) {
+    switch (statusStr) {
+      case 'password_required':
+        return StatementImportStatus.passwordRequired;
+      case 'parsing':
+        return StatementImportStatus.parsing;
+      case 'review_required':
+        return StatementImportStatus.reviewRequired;
+      case 'confirmed':
+        return StatementImportStatus.confirmed;
+      case 'failed':
+        return StatementImportStatus.failed;
+      case 'cancelled':
+        return StatementImportStatus.cancelled;
+      default:
+        return StatementImportStatus.uploaded;
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'file_name': fileName,
+      'file_size_bytes': fileSizeBytes,
+      'status': _statusToString(status),
+      'provider_hint': providerHint,
+      'requires_password': requiresPassword,
+      'total_detected': totalDetected,
+      'needs_review_count': needsReviewCount,
+      'uploaded_at': uploadedAt.toUtc().toIso8601String(),
+      'error_message': errorMessage,
+    };
+  }
+
+  static String _statusToString(StatementImportStatus status) {
+    switch (status) {
+      case StatementImportStatus.passwordRequired:
+        return 'password_required';
+      case StatementImportStatus.parsing:
+        return 'parsing';
+      case StatementImportStatus.reviewRequired:
+        return 'review_required';
+      case StatementImportStatus.confirmed:
+        return 'confirmed';
+      case StatementImportStatus.failed:
+        return 'failed';
+      case StatementImportStatus.cancelled:
+        return 'cancelled';
+      case StatementImportStatus.uploaded:
+        return 'uploaded';
+    }
+  }
+
+  StatementImport copyWith({
+    String? id,
+    String? fileName,
+    int? fileSizeBytes,
+    StatementImportStatus? status,
+    String? providerHint,
+    bool? requiresPassword,
+    int? totalDetected,
+    int? needsReviewCount,
+    DateTime? uploadedAt,
+    String? errorMessage,
+  }) {
+    return StatementImport(
+      id: id ?? this.id,
+      fileName: fileName ?? this.fileName,
+      fileSizeBytes: fileSizeBytes ?? this.fileSizeBytes,
+      status: status ?? this.status,
+      providerHint: providerHint ?? this.providerHint,
+      requiresPassword: requiresPassword ?? this.requiresPassword,
+      totalDetected: totalDetected ?? this.totalDetected,
+      needsReviewCount: needsReviewCount ?? this.needsReviewCount,
+      uploadedAt: uploadedAt ?? this.uploadedAt,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+class ParsedTransactionDraft {
+  final String id;
+  final String importId;
+  final DateTime date;
+  final String description;
+  final int amount;
+  final String category;
+  final DraftStatus status;
+  final String? anomalyReason;
+
+  const ParsedTransactionDraft({
+    required this.id,
+    required this.importId,
+    required this.date,
+    required this.description,
+    required this.amount,
+    required this.category,
+    this.status = DraftStatus.pending,
+    this.anomalyReason,
+  });
+
+  factory ParsedTransactionDraft.fromJson(Map<String, dynamic> json) {
+    return ParsedTransactionDraft(
+      id: json['id'] as String,
+      importId: json['import_id'] as String,
+      date: DateTime.parse(json['date'] as String),
+      description: json['description'] as String,
+      amount: (json['amount'] as num).toInt(),
+      category: json['category'] as String,
+      status: DraftStatus.values.firstWhere(
+        (e) => e.name == json['status'],
+        orElse: () => DraftStatus.pending,
+      ),
+      anomalyReason: json['anomaly_reason'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'import_id': importId,
+      'date': date.toUtc().toIso8601String(),
+      'description': description,
+      'amount': amount,
+      'category': category,
+      'status': status.name,
+      'anomaly_reason': anomalyReason,
+    };
+  }
+
+  ParsedTransactionDraft copyWith({
+    String? id,
+    String? importId,
+    DateTime? date,
+    String? description,
+    int? amount,
+    String? category,
+    DraftStatus? status,
+    String? anomalyReason,
+  }) {
+    return ParsedTransactionDraft(
+      id: id ?? this.id,
+      importId: importId ?? this.importId,
+      date: date ?? this.date,
+      description: description ?? this.description,
+      amount: amount ?? this.amount,
+      category: category ?? this.category,
+      status: status ?? this.status,
+      anomalyReason: anomalyReason ?? this.anomalyReason,
+    );
+  }
+}

@@ -3,18 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app/app/app.dart';
 
 void main() {
-  testWidgets('FaveraApp boots and renders app title',
+  testWidgets('FaveraApp boots with router and renders Home Dashboard',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
         child: FaveraApp(),
       ),
     );
+    await tester.pumpAndSettle();
 
-    expect(find.text('Favera'), findsOneWidget);
-    expect(
-      find.text('Satu ruang untuk uang dan perasaan keluarga.'),
-      findsOneWidget,
-    );
+    expect(find.text('Home Dashboard'), findsWidgets);
   });
 }
