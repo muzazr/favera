@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/widgets/component_gallery_page.dart';
 import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/family/presentation/pages/family_connect_page.dart';
+import '../../features/family/presentation/pages/family_invitation_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
 import '../../shared/widgets/placeholder_page.dart';
@@ -87,20 +89,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutePaths.familyConnect,
         name: AppRouteNames.familyConnect,
-        builder: (context, state) => const PlaceholderPage(
-          title: 'Hubungkan Akun Keluarga',
-          routeName: AppRouteNames.familyConnect,
-          routePath: AppRoutePaths.familyConnect,
-        ),
+        builder: (context, state) => const FamilyConnectPage(),
       ),
       GoRoute(
         path: AppRoutePaths.familyInvitation,
         name: AppRouteNames.familyInvitation,
-        builder: (context, state) => const PlaceholderPage(
-          title: 'Undangan Keluarga',
-          routeName: AppRouteNames.familyInvitation,
-          routePath: AppRoutePaths.familyInvitation,
-        ),
+        builder: (context, state) => const FamilyInvitationPage(),
       ),
 
       // 4. Debug Routes
