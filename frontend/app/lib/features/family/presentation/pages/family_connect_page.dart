@@ -5,14 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_names.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
-import '../../../../app/theme/app_shadows.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
-import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_gradient_background.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../shared/models/family_model.dart';
 import '../../application/family_controller.dart';
 import '../widgets/consent_dialog.dart';
+import 'family_success_page.dart';
 
 class FamilyConnectPage extends ConsumerStatefulWidget {
   const FamilyConnectPage({super.key});
@@ -22,8 +22,7 @@ class FamilyConnectPage extends ConsumerStatefulWidget {
 }
 
 class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
-  final _codeController = TextEditingController(text: 'FAV-88219');
-  String? _generatedCode;
+  final _codeController = TextEditingController(text: 'S-1029-BZ');
   bool _copied = false;
   String? _errorMessage;
 
@@ -33,52 +32,40 @@ class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
     super.dispose();
   }
 
-  Future<void> _handleGenerateCode() async {
-    final space =
-        await ref.read(familyControllerProvider.notifier).createSpace();
-    if (space != null && mounted) {
-      setState(() {
-        _generatedCode = space.inviteCode;
-      });
-    }
-  }
-
-  void _copyToClipboard() {
-    if (_generatedCode != null) {
-      Clipboard.setData(ClipboardData(text: _generatedCode!));
-      setState(() {
-        _copied = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kode undangan berhasil disalin ke clipboard!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
+  void _copyToClipboard(String code) {
+    Clipboard.setData(ClipboardData(text: code));
+    setState(() {
+      _copied = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('ID Ruang Aman berhasil disalin ke clipboard!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _handleJoinRequest() {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
       setState(() {
-        _errorMessage = 'Masukkan kode undangan 6 karakter pasangan anda';
+        _errorMessage = 'Masukkan ID pasangan Anda';
       });
       return;
     }
 
     ConsentDialog.show(
       context,
-      partnerName: 'Pasangan',
+      partnerName: 'Siti Nurbaya',
       onConsentApproved: () async {
         final success =
             await ref.read(familyControllerProvider.notifier).joinSpace(code);
 
         if (success && mounted) {
-          context.go(AppRoutePaths.home);
+          context.go(AppRoutePaths.familySuccess);
         } else if (mounted) {
           setState(() {
-            _errorMessage = 'Kode undangan tidak valid atau telah expired';
+            _errorMessage = 'ID Pasangan tidak ditemukan atau tidak valid';
           });
         }
       },
@@ -88,26 +75,96 @@ class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
   @override
   Widget build(BuildContext context) {
     final familyState = ref.watch(familyControllerProvider);
+    final familySpace = familyState.value;
     final isLoading = familyState.isLoading;
+
+    // If family space is already active, show the active paired space view (Screenshot 3)
+    if (familySpace != null && familySpace.status == FamilyStatus.active) {
+      return const FamilySuccessPage();
+    }
+
+    final myInviteCode = familySpace?.inviteCode ?? 'R-8392-AX';
 
     return AppGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.pagePadding),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: AppSpacing.s16,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: AppSpacing.s24),
-                const Text(
-                  'Hubungkan Akun Pasangan',
-                  style: AppTypography.pageTitle,
+                // Top Header Row (Back Button & Help Icon)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Circular White Back Button
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.chevron_left_rounded,
+                          color: Color(0xFF111827),
+                          size: 24,
+                        ),
+                        onPressed: () {
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go(AppRoutePaths.home);
+                          }
+                        },
+                      ),
+                    ),
+
+                    // Circular White Help Button
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.help_outline_rounded,
+                          color: Color(0xFF111827),
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          // Help info tooltip
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.s24),
+
+                // Title & Subtitle
                 const Text(
-                  'Kelola keuangan bersama secara transparan tanpa tuduhan atau praduga.',
-                  style: AppTypography.helper,
+                  'Hubungkan Akun',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s8),
+                const Text(
+                  'Masukkan ID Pasanganmu untuk mulai mengelola keuangan dan membangun ruang aman bersama.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF4B5563),
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.s24),
 
@@ -129,171 +186,236 @@ class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
                   const SizedBox(height: AppSpacing.s16),
                 ],
 
-                // Option A: Generate Invite Code Card
+                // Main White Card
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.cardPaddingLarge),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                    boxShadow: AppShadows.card,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primarySoft,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.qr_code_rounded,
-                              color: AppColors.primaryDark,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.s12),
-                          const Text(
-                            'Opsi A: Buat Kode Undangan',
-                            style: AppTypography.cardTitle,
-                          ),
-                        ],
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
-                      const SizedBox(height: AppSpacing.s8),
-                      const Text(
-                        'Bagikan kode ini kepada pasangan anda untuk menghubungkan akun.',
-                        style: AppTypography.helper,
-                      ),
-                      const SizedBox(height: AppSpacing.s16),
-                      if (_generatedCode == null) ...[
-                        AppButton(
-                          text: 'Buat Kode Undangan Baru',
-                          variant: AppButtonVariant.outline,
-                          onPressed: _handleGenerateCode,
-                          isLoading: isLoading,
-                        ),
-                      ] else ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.s16,
-                            vertical: AppSpacing.s12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySoft,
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.input),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _generatedCode!,
-                                style: AppTypography.pageTitle.copyWith(
-                                  color: AppColors.primaryDark,
-                                  letterSpacing: 2,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  _copied
-                                      ? Icons.check_circle_rounded
-                                      : Icons.content_copy_rounded,
-                                  color: AppColors.primaryDark,
-                                ),
-                                onPressed: _copyToClipboard,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ],
                   ),
-                ),
-                const SizedBox(height: AppSpacing.s24),
-
-                // Option B: Enter Partner's Code Card
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.cardPaddingLarge),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                    boxShadow: AppShadows.card,
-                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.accentOrangeSoft,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.vpn_key_rounded,
-                              color: AppColors.accentOrange,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.s12),
-                          const Text(
-                            'Opsi B: Masukkan Kode Pasangan',
-                            style: AppTypography.cardTitle,
-                          ),
-                        ],
+                      // Label: ID Ruang Aman Anda
+                      const Text(
+                        'ID Ruang Aman Anda',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF374151),
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.s8),
-                      const Text(
-                        'Masukkan 6 karakter kode yang dibuat oleh pasangan anda.',
-                        style: AppTypography.helper,
-                      ),
-                      const SizedBox(height: AppSpacing.s16),
-                      AppTextField(
-                        hintText: 'Contoh: FAV-88219',
-                        controller: _codeController,
-                        prefixIcon: const Icon(Icons.key_outlined),
+
+                      // Blue Soft Pill Container with Code & Salin Button
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFCCE4FF),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              myInviteCode,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF111827),
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+
+                            // White Salin Button
+                            InkWell(
+                              onTap: () => _copyToClipboard(myInviteCode),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'Salin',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF111827),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      _copied
+                                          ? Icons.check_rounded
+                                          : Icons.copy_rounded,
+                                      size: 14,
+                                      color: const Color(0xFF111827),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.s24),
-                      AppButton(
-                        text: 'Hubungkan Akun Pasangan',
-                        onPressed: _handleJoinRequest,
-                        isLoading: isLoading,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.s24),
 
-                // Privacy Note Banner
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.s16),
-                  decoration: BoxDecoration(
-                    color: AppColors.infoSoft,
-                    borderRadius: BorderRadius.circular(AppRadius.card),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.shield_outlined,
-                        color: AppColors.info,
-                      ),
-                      const SizedBox(width: AppSpacing.s12),
-                      Expanded(
-                        child: Text(
-                          'Catatan Privasi: Data pribadi (refleksi pribadi, chat AI, dan file e-statement asli) tidak otomatis terlihat oleh pasangan tanpa persetujuan eksplisit.',
-                          style: AppTypography.caption.copyWith(
-                            color: AppColors.textPrimary,
+                      // Divider — ATAU —
+                      Row(
+                        children: [
+                          const Expanded(
+                              child: Divider(color: Color(0xFFE5E7EB))),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              'ATAU',
+                              style: AppTypography.caption.copyWith(
+                                color: const Color(0xFF9CA3AF),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                              ),
+                            ),
                           ),
+                          const Expanded(
+                              child: Divider(color: Color(0xFFE5E7EB))),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.s20),
+
+                      // Label: Masukkan ID Pasangan
+                      const Text(
+                        'Masukkan ID Pasangan',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s8),
+
+                      AppTextField(
+                        hintText: 'Ketik atau tempel ID di sini...',
+                        controller: _codeController,
+                        prefixIcon: const Icon(
+                          Icons.link_rounded,
+                          color: Color(0xFF6B7280),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s24),
+
+                      // Primary Button: Kirim Permintaan →
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF006C4C),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        onPressed: isLoading ? null : _handleJoinRequest,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (isLoading)
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor:
+                                      AlwaysStoppedAnimation(Colors.white),
+                                ),
+                              )
+                            else ...[
+                              const Text(
+                                'Kirim Permintaan',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: AppSpacing.s20),
+
+                // Button below Card: Cek Permintaan Ruang Aman
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFFE5E7EB)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
+                  onPressed: () {
+                    context.push(AppRoutePaths.familyInvitation);
+                  },
+                  child: const Text(
+                    'Cek Permintaan Ruang Aman',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s32),
+
+                // Footer text
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.aspect_ratio_rounded,
+                      size: 14,
+                      color: Color(0xFF006C4C),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      'Koneksi diamankan dengan enkripsi end-to-end.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF4B5563),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),

@@ -4,20 +4,33 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_names.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_radius.dart';
-import '../../../../app/theme/app_shadows.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
-import '../../../../core/widgets/app_button.dart';
+import '../../../../core/constants/app_assets.dart';
 import '../../../../core/widgets/app_gradient_background.dart';
-import '../../../../core/widgets/app_status_badge.dart';
-import '../../../../shared/models/family_model.dart';
-import '../../../auth/application/auth_controller.dart';
 import '../../application/family_controller.dart';
+import '../widgets/consent_dialog.dart';
 
 class FamilyInvitationPage extends ConsumerWidget {
   const FamilyInvitationPage({super.key});
 
-  void _showDisconnectConfirmation(
+  void _handleAcceptConsent(BuildContext context, WidgetRef ref) {
+    ConsentDialog.show(
+      context,
+      partnerName: 'Siti Nurbaya',
+      onConsentApproved: () async {
+        final success = await ref
+            .read(familyControllerProvider.notifier)
+            .joinSpace('S-1029-BZ');
+
+        if (success && context.mounted) {
+          context.go(AppRoutePaths.familySuccess);
+        }
+      },
+    );
+  }
+
+  void _showRejectConfirmation(
       BuildContext context, WidgetRef ref, String spaceId) {
     showDialog(
       context: context,
@@ -25,10 +38,9 @@ class FamilyInvitationPage extends ConsumerWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.card),
         ),
-        title: const Text('Putuskan Sambungan Keluarga?',
-            style: AppTypography.cardTitle),
+        title: const Text('Tolak Permintaan?', style: AppTypography.cardTitle),
         content: const Text(
-          'Tindakan ini akan menghentikan pembagian ringkasan keuangan dan target bersama dengan pasangan. Anda dapat terhubung kembali kapan saja.',
+          'Tindakan ini akan menolak permintaan koneksi ruang aman dari Siti Nurbaya.',
           style: AppTypography.helper,
         ),
         actions: [
@@ -49,8 +61,8 @@ class FamilyInvitationPage extends ConsumerWidget {
                 context.go(AppRoutePaths.familyConnect);
               }
             },
-            child: const Text('Ya, Putuskan',
-                style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Ya, Tolak', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -61,123 +73,253 @@ class FamilyInvitationPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final familyState = ref.watch(familyControllerProvider);
     final familySpace = familyState.value;
-    final currentUser = ref.watch(authControllerProvider).value;
 
     return AppGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text('Status Ruang Keluarga',
-              style: AppTypography.sectionTitle),
-        ),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.pagePadding),
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.cardPaddingLarge),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.card),
-                boxShadow: AppShadows.card,
-              ),
-              child: familySpace != null
-                  ? Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: AppSpacing.s16,
+            ),
+            child: Column(
+              children: [
+                // Top Header Row (Close Button top-left)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF111827),
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(AppRoutePaths.familyConnect);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s24),
+
+                // Main Invitation Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Avatar with Green Heart Badge
+                      SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: Stack(
                           children: [
-                            Text(
-                              'Kode: ${familySpace.inviteCode}',
-                              style: AppTypography.cardTitle,
+                            const CircleAvatar(
+                              radius: 40,
+                              backgroundImage:
+                                  AssetImage(AppAssets.profileWomen),
                             ),
-                            AppStatusBadge(
-                              label: familySpace.status.name.toUpperCase(),
-                              level: familySpace.status == FamilyStatus.active
-                                  ? AppStatusLevel.stable
-                                  : AppStatusLevel.warning,
+                            Positioned(
+                              bottom: 2,
+                              right: 2,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF006C4C),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.favorite_rounded,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: AppSpacing.s16),
-                        Text(
-                          'Anggota Keluarga:',
-                          style: AppTypography.caption,
+                      ),
+                      const SizedBox(height: AppSpacing.s16),
+
+                      // Status Header: PERMINTAAN TERHUBUNG
+                      const Text(
+                        'PERMINTAAN TERHUBUNG',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF006C4C),
+                          letterSpacing: 1.2,
                         ),
-                        const SizedBox(height: AppSpacing.s8),
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            backgroundColor: AppColors.primarySoft,
-                            child: Text(
-                              (currentUser?.name ?? 'U').substring(0, 1),
-                              style:
-                                  const TextStyle(color: AppColors.primaryDark),
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Sender Name: Siti Nurbaya
+                      const Text(
+                        'Siti Nurbaya',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s8),
+
+                      // ID Pill Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0EDFF),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.badge_outlined,
+                              size: 14,
+                              color: Color(0xFF6B7280),
                             ),
-                          ),
-                          title: Text(currentUser?.name ?? 'Saya',
-                              style: AppTypography.bodyMedium),
-                          subtitle: const Text('Akun Utama (Anda)',
-                              style: AppTypography.caption),
-                        ),
-                        if (familySpace.partnerName != null) ...[
-                          const Divider(),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const CircleAvatar(
-                              backgroundColor: AppColors.accentOrangeSoft,
-                              child: Text('B',
-                                  style:
-                                      TextStyle(color: AppColors.accentOrange)),
+                            SizedBox(width: 6),
+                            Text(
+                              'ID: S-1029-BZ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF374151),
+                              ),
                             ),
-                            title: Text(familySpace.partnerName!,
-                                style: AppTypography.bodyMedium),
-                            subtitle: const Text('Pasangan Terhubung',
-                                style: AppTypography.caption),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.s20),
+
+                      // Message Body
+                      const Text(
+                        'mengundang Anda untuk berbagi Ruang Aman, mengelola keuangan bersama, dan menyinkronkan Check-In Mingguan.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF4B5563),
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      // Button 1 (Primary Dark Green): Terima & Hubungkan
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF006C4C),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                        ],
-                        const SizedBox(height: AppSpacing.s24),
-                        AppButton(
-                          text: 'Putuskan Hubungan Pasangan',
-                          variant: AppButtonVariant.destructive,
-                          onPressed: () {
-                            _showDisconnectConfirmation(
-                                context, ref, familySpace.id);
-                          },
+                          minimumSize: const Size(double.infinity, 48),
                         ),
-                      ],
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.family_restroom_rounded,
-                          size: 64,
-                          color: AppColors.textSecondary,
+                        onPressed: () => _handleAcceptConsent(context, ref),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.handshake_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Terima & Hubungkan',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: AppSpacing.s16),
-                        const Text(
-                          'Belum Terhubung Dengan Pasangan',
-                          style: AppTypography.cardTitle,
+                      ),
+                      const SizedBox(height: AppSpacing.s12),
+
+                      // Button 2 (Secondary Vibrant Orange): Tolak Permintaan
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF7418),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          minimumSize: const Size(double.infinity, 48),
                         ),
-                        const SizedBox(height: AppSpacing.s8),
-                        const Text(
-                          'Anda belum memiliki akun keluarga yang terhubung.',
-                          style: AppTypography.helper,
-                          textAlign: TextAlign.center,
+                        onPressed: () {
+                          _showRejectConfirmation(
+                              context, ref, familySpace?.id ?? 'fam-88219');
+                        },
+                        child: const Text(
+                          'Tolak Permintaan',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                        const SizedBox(height: AppSpacing.s24),
-                        AppButton(
-                          text: 'Hubungkan Pasangan Sekarang',
-                          onPressed: () {
-                            context.go(AppRoutePaths.familyConnect);
-                          },
-                        ),
-                      ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.s32),
+
+                // Footer Info Note
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 14,
+                      color: Color(0xFF6B7280),
                     ),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Anda selalu dapat memutuskan koneksi kapan saja melalui menu Pengaturan.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF4B5563),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
         ),

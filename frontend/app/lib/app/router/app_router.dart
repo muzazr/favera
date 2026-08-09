@@ -7,6 +7,7 @@ import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/family/presentation/pages/family_connect_page.dart';
 import '../../features/family/presentation/pages/family_invitation_page.dart';
+import '../../features/family/presentation/pages/family_success_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
@@ -96,6 +97,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutePaths.familyInvitation,
         name: AppRouteNames.familyInvitation,
         builder: (context, state) => const FamilyInvitationPage(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.familySuccess,
+        name: AppRouteNames.familySuccess,
+        builder: (context, state) => const FamilySuccessPage(),
       ),
 
       // 4. Debug Routes
