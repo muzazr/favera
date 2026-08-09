@@ -27,9 +27,15 @@ class ConflictFailure extends AppFailure {
   const ConflictFailure({this.message});
 }
 
+class AuthFailure extends AppFailure {
+  final String? message;
+  const AuthFailure({this.message});
+}
+
 class ValidationFailure extends AppFailure {
+  final String? message;
   final Map<String, String> fields;
-  const ValidationFailure(this.fields);
+  const ValidationFailure({this.message, this.fields = const {}});
 }
 
 class ServerFailure extends AppFailure {

@@ -1,26 +1,44 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/widgets/component_gallery_page.dart';
+import '../../features/auth/presentation/pages/auth_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/onboarding/presentation/pages/onboarding_page.dart';
+import '../../features/profile/presentation/pages/profile_setup_page.dart';
 import '../../shared/widgets/placeholder_page.dart';
 import '../shell/app_shell.dart';
 import 'route_catalog_page.dart';
 import 'route_names.dart';
 import 'route_redirect.dart';
 
-final routeStateProvider = StateProvider<RouteState>((ref) {
-  return RouteState.initial();
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen<RouteState>(routeStateProvider, (_, __) {
+      notifyListeners();
+    });
+  }
+}
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
 });
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final routeState = ref.watch(routeStateProvider);
-  final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+  final notifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: AppRoutePaths.home,
-    debugLogDiagnostics: true,
+    refreshListenable: notifier,
+    initialLocation: AppRoutePaths.onboarding,
+    debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
+      final routeState = ref.read(routeStateProvider);
       return RouteRedirect.handleRedirect(
         location: state.uri.path,
         state: routeState,
@@ -40,53 +58,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutePaths.onboarding,
         name: AppRouteNames.onboarding,
-        builder: (context, state) => const PlaceholderPage(
-          title: 'Onboarding Favera',
-          routeName: AppRouteNames.onboarding,
-          routePath: AppRoutePaths.onboarding,
-          description: 'Layar pengenalan 3 slide Favera.',
-        ),
+        builder: (context, state) => const OnboardingPage(),
       ),
 
       // 2. Auth Group
       GoRoute(
         path: AppRoutePaths.login,
         name: AppRouteNames.login,
-        builder: (context, state) => const PlaceholderPage(
-          title: 'Masuk / Login',
-          routeName: AppRouteNames.login,
-          routePath: AppRoutePaths.login,
-          description: 'Halaman autentikasi pengguna.',
-        ),
+        builder: (context, state) => const AuthPage(initialIsRegister: false),
       ),
       GoRoute(
         path: AppRoutePaths.register,
         name: AppRouteNames.register,
-        builder: (context, state) => const PlaceholderPage(
-          title: 'Daftar Akun Baru',
-          routeName: AppRouteNames.register,
-          routePath: AppRoutePaths.register,
-        ),
+        builder: (context, state) => const AuthPage(initialIsRegister: true),
       ),
       GoRoute(
         path: AppRoutePaths.forgotPassword,
         name: AppRouteNames.forgotPassword,
-        builder: (context, state) => const PlaceholderPage(
-          title: 'Lupa Password',
-          routeName: AppRouteNames.forgotPassword,
-          routePath: AppRoutePaths.forgotPassword,
-        ),
+        builder: (context, state) => const ForgotPasswordPage(),
       ),
 
       // 3. Profile Setup & Family Pairing
       GoRoute(
         path: AppRoutePaths.profileSetup,
         name: AppRouteNames.profileSetup,
-        builder: (context, state) => const PlaceholderPage(
-          title: 'Penyelesaian Profil',
-          routeName: AppRouteNames.profileSetup,
-          routePath: AppRoutePaths.profileSetup,
-        ),
+        builder: (context, state) => const ProfileSetupPage(),
       ),
       GoRoute(
         path: AppRoutePaths.familyConnect,

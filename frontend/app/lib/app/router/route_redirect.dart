@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'route_names.dart';
 
 class RouteState {
@@ -14,16 +15,55 @@ class RouteState {
     required this.familyPaired,
   });
 
+  RouteState copyWith({
+    bool? onboardingCompleted,
+    bool? isAuthenticated,
+    bool? profileCompleted,
+    bool? familyPaired,
+  }) {
+    return RouteState(
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      profileCompleted: profileCompleted ?? this.profileCompleted,
+      familyPaired: familyPaired ?? this.familyPaired,
+    );
+  }
+
   factory RouteState.initial() {
     return const RouteState(
-      onboardingCompleted:
-          true, // Set default true for dev preview unless forced
-      isAuthenticated: true,
-      profileCompleted: true,
-      familyPaired: true,
+      onboardingCompleted: false,
+      isAuthenticated: false,
+      profileCompleted: false,
+      familyPaired: false,
     );
   }
 }
+
+class RouteStateNotifier extends StateNotifier<RouteState> {
+  RouteStateNotifier([RouteState? initial])
+      : super(initial ?? RouteState.initial());
+
+  void setOnboardingCompleted(bool val) {
+    state = state.copyWith(onboardingCompleted: val);
+  }
+
+  void setAuthenticated(bool val) {
+    state = state.copyWith(isAuthenticated: val);
+  }
+
+  void setProfileCompleted(bool val) {
+    state = state.copyWith(profileCompleted: val);
+  }
+
+  void setFamilyPaired(bool val) {
+    state = state.copyWith(familyPaired: val);
+  }
+}
+
+final routeStateProvider =
+    StateNotifierProvider<RouteStateNotifier, RouteState>((ref) {
+  return RouteStateNotifier();
+});
 
 abstract final class RouteRedirect {
   static String? handleRedirect({
