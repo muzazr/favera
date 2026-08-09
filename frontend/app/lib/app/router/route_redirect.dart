@@ -75,9 +75,10 @@ abstract final class RouteRedirect {
     final isProfileSetupRoute = location == AppRoutePaths.profileSetup;
     final isFamilyConnectRoute = location.startsWith('/family/');
     final isDebugRoute = location.startsWith('/debug/');
+    final isPreview = location.contains('preview=true');
 
-    // Debug routes bypass standard redirect guards in dev mode
-    if (isDebugRoute && kDebugMode) {
+    // Debug routes and explicit preview requests bypass guards in dev mode
+    if ((isDebugRoute || isPreview) && kDebugMode) {
       return null;
     }
 

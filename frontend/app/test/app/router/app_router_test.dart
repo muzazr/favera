@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app/app/app.dart';
 import 'package:app/app/router/route_redirect.dart';
+import 'package:app/core/widgets/app_bottom_nav_bar.dart';
 
 void main() {
   group('AppRouter Widget & Shell Tests', () {
@@ -28,7 +29,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Home Dashboard'), findsWidgets);
+      expect(find.textContaining('Halo,'), findsWidgets);
       expect(find.text('Home'), findsOneWidget);
     });
 
@@ -53,7 +54,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.account_balance_wallet_outlined));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AppBottomNavBar),
+          matching: find.byIcon(Icons.account_balance_wallet_outlined),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Finance Dashboard'), findsWidgets);

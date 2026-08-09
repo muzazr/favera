@@ -11,7 +11,7 @@ void main() {
 
     setUp(() {
       mockClock = MockClock(DateTime.utc(2026, 8, 9, 10, 0, 0));
-      store = MockStore(clock: mockClock);
+      store = MockStore(clock: mockClock)..resetToSeed(preAuthenticate: true);
     });
 
     test('initializes with seed user, family, and transactions', () {

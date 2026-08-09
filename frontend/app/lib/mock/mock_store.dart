@@ -30,7 +30,7 @@ class MockStore {
   }
 
   // --- Seed Initialization ---
-  void resetToSeed() {
+  void resetToSeed({bool preAuthenticate = false}) {
     _transactions.clear();
     _statementImports.clear();
     _statementDrafts.clear();
@@ -42,26 +42,30 @@ class MockStore {
     _professionals.clear();
     _simulations.clear();
 
-    // 1. User & Family
-    currentUser = User(
-      id: 'usr-joselin-001',
-      email: 'joselin.demo@favera.local',
-      name: 'Joselin',
-      onboardingCompleted: true,
-      avatarUrl: 'assets/profile_women.png',
-      createdAt: clock.now(),
-    );
+    if (preAuthenticate) {
+      currentUser = User(
+        id: 'usr-joselin-001',
+        email: 'joselin.demo@favera.local',
+        name: 'Joselin',
+        onboardingCompleted: true,
+        avatarUrl: 'assets/profile_women.png',
+        createdAt: clock.now(),
+      );
 
-    family = FamilySpace(
-      id: 'fam-88219',
-      inviteCode: 'FAV-88219',
-      status: FamilyStatus.active,
-      primaryUserId: 'usr-joselin-001',
-      partnerUserId: 'usr-budi-002',
-      partnerName: 'Budi',
-      createdAt: clock.now(),
-      pairedAt: clock.now(),
-    );
+      family = FamilySpace(
+        id: 'fam-88219',
+        inviteCode: 'FAV-88219',
+        status: FamilyStatus.active,
+        primaryUserId: 'usr-joselin-001',
+        partnerUserId: 'usr-budi-002',
+        partnerName: 'Budi',
+        createdAt: clock.now(),
+        pairedAt: clock.now(),
+      );
+    } else {
+      currentUser = null;
+      family = null;
+    }
 
     // 2. Transactions
     final tx1 = Transaction(

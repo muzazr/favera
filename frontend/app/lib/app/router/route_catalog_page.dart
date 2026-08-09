@@ -234,7 +234,12 @@ class RouteCatalogPage extends StatelessWidget {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: AppSpacing.s12),
                       child: AppCard(
-                        onTap: () => context.push(item.path),
+                        onTap: () {
+                          final previewPath = item.path.contains('?')
+                              ? '${item.path}&preview=true'
+                              : '${item.path}?preview=true';
+                          context.push(previewPath);
+                        },
                         child: Row(
                           children: [
                             Container(

@@ -16,5 +16,6 @@ abstract final class AppAssets {
   static const String shopping = 'assets/shopping.png';
   static const String simulationFinance = 'assets/simulation_finance.png';
   static const String transportation = 'assets/transportation.png';
-  static const String upload = 'assets/upload.png';
+  static const String googleLogo = 'assets/google_logo.png';
+  static const String appleLogo = 'assets/apple_logo.png';
 }
