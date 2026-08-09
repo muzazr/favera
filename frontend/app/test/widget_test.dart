@@ -37,6 +37,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Home Dashboard'), findsWidgets);
+    expect(find.textContaining('Halo,'), findsWidgets);
   });
 }

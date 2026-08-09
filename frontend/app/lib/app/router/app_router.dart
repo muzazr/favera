@@ -7,6 +7,7 @@ import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/family/presentation/pages/family_connect_page.dart';
 import '../../features/family/presentation/pages/family_invitation_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
 import '../../shared/widgets/placeholder_page.dart';
@@ -121,12 +122,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutePaths.home,
                 name: AppRouteNames.home,
-                builder: (context, state) => const PlaceholderPage(
-                  title: 'Home Dashboard',
-                  routeName: AppRouteNames.home,
-                  routePath: AppRoutePaths.home,
-                  description: 'Ringkasan keluarga, saldo, & aksi cepat.',
-                ),
+                builder: (context, state) => const HomePage(),
               ),
             ],
           ),
