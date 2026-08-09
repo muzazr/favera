@@ -1,0 +1,35 @@
+[
+  {
+    "id": "tx-001",
+    "type": "income",
+    "amount": 5500000,
+    "category": "Gaji",
+    "description": "Gaji Bulanan",
+    "date": "2026-08-01T09:00:00Z",
+    "is_anomaly": false,
+    "confirmed_by_partner": true,
+    "created_at": "2026-08-01T09:00:00Z"
+  },
+  {
+    "id": "tx-002",
+    "type": "expense",
+    "amount": 450000,
+    "category": "Tagihan",
+    "description": "Tagihan Listrik PLN",
+    "date": "2026-08-03T10:15:00Z",
+    "is_anomaly": false,
+    "confirmed_by_partner": true,
+    "created_at": "2026-08-03T10:15:00Z"
+  },
+  {
+    "id": "tx-003",
+    "type": "expense",
+    "amount": 150000,
+    "category": "Belanja",
+    "description": "Belanja Bulanan Supermarket",
+    "date": "2026-08-08T14:30:00Z",
+    "is_anomaly": false,
+    "confirmed_by_partner": true,
+    "created_at": "2026-08-08T14:30:00Z"
+  }
+]
