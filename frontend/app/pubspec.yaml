@@ -46,4 +46,6 @@ flutter:
 
   assets:
     - assets/
+    - assets/google_logo.png
+    - assets/apple_logo.png
 
