@@ -7,6 +7,7 @@ import 'package:app/core/constants/app_assets.dart';
 import 'package:app/core/formatters/currency_formatter.dart';
 import 'package:app/core/widgets/app_async_view.dart';
 import 'package:app/core/widgets/app_gradient_background.dart';
+import 'package:app/features/statements/presentation/widgets/statement_upload_modal.dart';
 import 'package:app/features/home/application/dashboard_controller.dart';
 import 'package:app/features/home/presentation/widgets/balance_hero_card.dart';
 
@@ -278,7 +279,7 @@ class FinanceDashboardPage extends ConsumerWidget {
                               ),
                             ),
                             onPressed: () {
-                              context.push(AppRoutePaths.statementUpload);
+                              StatementUploadModal.show(context);
                             },
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
