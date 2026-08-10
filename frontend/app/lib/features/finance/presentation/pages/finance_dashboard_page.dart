@@ -127,12 +127,25 @@ class FinanceDashboardPage extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Target Keuangan',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                            GestureDetector(
+                              onTap: () => context.push(AppRoutePaths.goals),
+                              child: const Row(
+                                children: [
+                                  Text(
+                                    'Target Keuangan',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF111827),
+                                    ),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: Color(0xFF9CA3AF),
+                                    size: 20,
+                                  ),
+                                ],
                               ),
                             ),
                             IconButton(
@@ -156,6 +169,8 @@ class FinanceDashboardPage extends ConsumerWidget {
                             children: [
                               // Goal 1: Dana Darurat
                               _buildGoalCard(
+                                context: context,
+                                goalId: 'goal-001',
                                 title: 'Dana Darurat',
                                 assetPath: AppAssets.danaDarurat,
                                 currentAmount: 6000000,
@@ -166,6 +181,8 @@ class FinanceDashboardPage extends ConsumerWidget {
 
                               // Goal 2: Pendidikan
                               _buildGoalCard(
+                                context: context,
+                                goalId: 'goal-002',
                                 title: 'Pendidikan',
                                 icon: Icons.school_rounded,
                                 iconColor: const Color(0xFFFF7418),
@@ -453,6 +470,8 @@ class FinanceDashboardPage extends ConsumerWidget {
   }
 
   Widget _buildGoalCard({
+    required BuildContext context,
+    required String goalId,
     required String title,
     IconData? icon,
     String? assetPath,
@@ -466,67 +485,72 @@ class FinanceDashboardPage extends ConsumerWidget {
     final currentK = '${(currentAmount / 1000).toStringAsFixed(0)}k';
     final targetK = '${(targetAmount / 1000).toStringAsFixed(0)}k';
 
-    return Container(
-      width: 220,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
+    return GestureDetector(
+      onTap: () {
+        context.push(AppRoutePaths.goalDetail.replaceFirst(':id', goalId));
+      },
+      child: Container(
+        width: 220,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF111827),
+                    ),
                   ),
                 ),
+                if (assetPath != null)
+                  Image.asset(assetPath, width: 22, height: 22)
+                else if (icon != null)
+                  Icon(icon, color: iconColor, size: 20),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Progress bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: const Color(0xFFE0E7FF),
+                valueColor: AlwaysStoppedAnimation(progressColor),
               ),
-              if (assetPath != null)
-                Image.asset(assetPath, width: 22, height: 22)
-              else if (icon != null)
-                Icon(icon, color: iconColor, size: 20),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFE0E7FF),
-              valueColor: AlwaysStoppedAnimation(progressColor),
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // Amount subtext
-          Text(
-            'Rp $currentK / Rp $targetK',
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF6B7280),
+            // Amount subtext
+            Text(
+              'Rp $currentK / Rp $targetK',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF6B7280),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

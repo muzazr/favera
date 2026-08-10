@@ -105,12 +105,35 @@ class MockStore {
     // 3. Financial Goal
     final goal1 = FinancialGoal(
       id: 'goal-001',
-      name: 'Dana Darurat Keluarga',
+      name: 'Dana Darurat',
       targetAmount: 10000000,
-      currentAmount: 5500000,
-      deadline: '2026-12-31',
+      currentAmount: 6000000,
+      deadline: 'Desember 2027',
       status: GoalStatus.active,
       approvedByPartner: true,
+      themeIcon: 'house',
+      contributionScheme: 'Dari Saldo Bersama',
+      priority: 'Penting',
+      contributions: [
+        GoalContribution(
+          id: 'c-001',
+          sourceName: 'Dari Pemasukan Gaji',
+          date: DateTime(2026, 7, 20),
+          amount: 1000000,
+        ),
+        GoalContribution(
+          id: 'c-002',
+          sourceName: 'Bonus Tahunan',
+          date: DateTime(2026, 6, 15),
+          amount: 2500000,
+        ),
+        GoalContribution(
+          id: 'c-003',
+          sourceName: 'Dari Tabungan Reguler',
+          date: DateTime(2026, 5, 1),
+          amount: 2500000,
+        ),
+      ],
       createdAt: clock.now(),
     );
     _goals[goal1.id] = goal1;
@@ -325,8 +348,40 @@ class MockStore {
     return _goals.values.toList();
   }
 
+  FinancialGoal? getGoalById(String id) {
+    return _goals[id];
+  }
+
   void addGoal(FinancialGoal goal) {
     _goals[goal.id] = goal;
+  }
+
+  bool removeGoal(String id) {
+    return _goals.remove(id) != null;
+  }
+
+  FinancialGoal? addContributionToGoal(
+    String goalId, {
+    required String sourceName,
+    required int amount,
+  }) {
+    final goal = _goals[goalId];
+    if (goal == null) return null;
+
+    final contribution = GoalContribution(
+      id: 'c-${DateTime.now().millisecondsSinceEpoch}',
+      sourceName: sourceName,
+      date: clock.now(),
+      amount: amount,
+    );
+
+    final updated = goal.copyWith(
+      currentAmount: goal.currentAmount + amount,
+      contributions: [contribution, ...goal.contributions],
+    );
+
+    _goals[goalId] = updated;
+    return updated;
   }
 
   // --- Check-In Queries & Mutations ---

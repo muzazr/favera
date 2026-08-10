@@ -12,6 +12,9 @@ import '../../features/finance/presentation/pages/finance_dashboard_page.dart';
 import '../../features/finance/presentation/pages/transaction_detail_page.dart';
 import '../../features/finance/presentation/pages/transaction_form_page.dart';
 import '../../features/finance/presentation/pages/transaction_list_page.dart';
+import '../../features/goals/presentation/pages/goal_detail_page.dart';
+import '../../features/goals/presentation/pages/goal_form_page.dart';
+import '../../features/goals/presentation/pages/goal_list_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
@@ -187,30 +190,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'goals',
                     name: AppRouteNames.goals,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Target Keuangan Bersama',
-                      routeName: AppRouteNames.goals,
-                      routePath: AppRoutePaths.goals,
-                    ),
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const GoalListPage(),
                     routes: [
                       GoRoute(
                         path: 'new',
                         name: AppRouteNames.goalNew,
-                        builder: (context, state) => const PlaceholderPage(
-                          title: 'Buat Goal Baru',
-                          routeName: AppRouteNames.goalNew,
-                          routePath: AppRoutePaths.goalNew,
-                        ),
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => const GoalFormPage(),
                       ),
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.goalDetail,
-                        builder: (context, state) => PlaceholderPage(
-                          title: 'Detail Target Keuangan',
-                          routeName: AppRouteNames.goalDetail,
-                          routePath:
-                              '/app/finance/goals/${state.pathParameters['id']}',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => GoalDetailPage(
+                          goalId: state.pathParameters['id']!,
                         ),
+                        routes: [
+                          GoRoute(
+                            path: 'edit',
+                            name: AppRouteNames.goalEdit,
+                            parentNavigatorKey: rootNavigatorKey,
+                            builder: (context, state) => GoalFormPage(
+                              goalId: state.pathParameters['id'],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
