@@ -72,6 +72,8 @@ abstract final class AppRoutePaths {
   static const String transactions = '/app/finance/transactions';
   static const String transactionNew = '/app/finance/transactions/new';
   static const String transactionDetail = '/app/finance/transactions/:id';
+  static String transactionDetailWithId(String id) =>
+      '/app/finance/transactions/$id';
   static const String statementUpload = '/app/finance/statements/upload';
   static const String statementReview = '/app/finance/statements/:id/review';
   static const String goals = '/app/finance/goals';
