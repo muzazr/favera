@@ -22,4 +22,6 @@ abstract final class AppAssets {
   static const String aiEmpatikLogo = 'assets/AI_empatik_logo.png';
   static const String bicaraAhliLogo = 'assets/bicara_ahli_logo.png';
   static const String simulasiDampakLogo = 'assets/simulasi_dampak_logo.png';
+  static const String profilAhli = 'assets/profil_ahli.png';
+  static const String whatsappLogo = 'assets/whatsapp_logo.png';
 }

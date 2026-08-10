@@ -29,8 +29,8 @@ void main() {
     test('getProfessionals returns seeded list of professionals', () async {
       final list = await profRepo.getProfessionals();
       expect(list.isNotEmpty, isTrue);
-      expect(list.first.name, equals('Dra. Sarah Amelia, M.Psi'));
-      expect(list.first.schedule, contains('Senin - Jumat'));
+      expect(list.first.name, equals('Dr. Amanda Larasati, M.Psi'));
+      expect(list.first.schedule, contains('Selasa - Sabtu'));
     });
 
     test('getProfessionals filters by category correctly', () async {

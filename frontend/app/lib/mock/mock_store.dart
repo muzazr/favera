@@ -169,18 +169,26 @@ class MockStore {
     // 5. Seed Professionals
     final prof1 = Professional(
       id: 'prof-001',
-      name: 'Dra. Sarah Amelia, M.Psi',
+      name: 'Dr. Amanda Larasati, M.Psi',
       category: 'psikolog',
-      specialization: 'Psikolog Klinis & Pernikahan',
+      specialization: 'Psikolog Klinis & Konselor Finansial Keluarga',
       city: 'Jakarta Selatan',
       rating: 4.9,
+      reviewsCount: 120,
       experienceYears: 8,
-      schedule: 'Senin - Jumat (10:00 - 16:00)',
+      schedule: 'Selasa - Sabtu (09:00 - 15:00)',
       bio:
-          'Berpengalaman mendampingi lebih dari 200+ pasangan dalam memulihkan komunikasi keluarga dan mengurai konflik emosional.',
+          'Fokus membantu pasangan menavigasi konflik finansial dan membangun komunikasi yang sehat tanpa rasa dihakimi. Saya percaya bahwa setiap masalah keuangan selalu berakar pada kondisi emosional yang belum terselesaikan.',
+      specialties: const ['Manajemen Utang', 'Komunikasi Finansial'],
+      therapyApproaches: const [
+        'Cognitive Behavioral Therapy (CBT)',
+        'Mediasi Finansial Netral',
+      ],
+      education: 'Universitas Indonesia',
+      certification: 'Financial Behavior Specialist (FBS®)',
       whatsappUrl: 'https://wa.me/6281234567890',
       instagramUrl: 'https://instagram.com/favera_id',
-      externalUrl: 'https://favera.id/professionals/sarah-amelia',
+      externalUrl: 'https://favera.id/professionals/amanda-larasati',
     );
     final prof2 = Professional(
       id: 'prof-002',
