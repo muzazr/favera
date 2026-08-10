@@ -151,7 +151,7 @@ class _ConsentDialogState extends State<ConsentDialog> {
                 const SizedBox(width: AppSpacing.s12),
                 Expanded(
                   child: AppButton(
-                    text: 'Setujui & Hubungkan',
+                    text: 'Hubungkan',
                     onPressed: _canProceed
                         ? () {
                             Navigator.of(context).pop(true);

@@ -27,6 +27,7 @@ abstract final class AppRouteNames {
   static const String goals = 'goals';
   static const String goalNew = 'goalNew';
   static const String goalDetail = 'goalDetail';
+  static const String goalEdit = 'goalEdit';
 
   // Mediation & Recovery Domain
   static const String mediation = 'mediation';
@@ -79,6 +80,7 @@ abstract final class AppRoutePaths {
   static const String goals = '/app/finance/goals';
   static const String goalNew = '/app/finance/goals/new';
   static const String goalDetail = '/app/finance/goals/:id';
+  static const String goalEdit = '/app/finance/goals/:id/edit';
 
   // Mediation Sub-routes
   static const String chatSessions = '/app/mediation/chat';

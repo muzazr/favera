@@ -22,14 +22,21 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   String _selectedCategory = 'Belanja';
   bool _isSaving = false;
 
-  static const _categories = [
-    'Belanja',
-    'Tagihan',
-    'Gaji',
-    'Hiburan',
-    'Transportasi',
-    'Kesehatan',
-    'Lainnya',
+  static const _incomeCategories = [
+    {'name': 'Gaji Bulanan', 'icon': '💼'},
+    {'name': 'Bonus', 'icon': '💳'},
+    {'name': 'Hasil Usaha', 'icon': '🏪'},
+    {'name': 'Investasi', 'icon': '📈'},
+    {'name': 'Lainnya', 'icon': '•••'},
+  ];
+
+  static const _expenseCategories = [
+    {'name': 'Belanja', 'icon': '🛒'},
+    {'name': 'Tagihan', 'icon': '⚡'},
+    {'name': 'Hiburan', 'icon': '🎬'},
+    {'name': 'Transportasi', 'icon': '🚗'},
+    {'name': 'Kesehatan', 'icon': '🏥'},
+    {'name': 'Lainnya', 'icon': '•••'},
   ];
 
   @override
@@ -67,7 +74,12 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaksi berhasil dicatat!')),
+          SnackBar(
+            content: Text(_type == TransactionType.income
+                ? 'Pemasukan berhasil dicatat!'
+                : 'Pengeluaran berhasil dicatat!'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
         );
         context.pop();
       }
@@ -88,12 +100,16 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isIncome = _type == TransactionType.income;
+    final currentCategories = isIncome ? _incomeCategories : _expenseCategories;
+
     return AppGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
+          centerTitle: true,
           title: const Text(
-            'Catat Transaksi Baru',
+            'Tambah Transaksi',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -140,14 +156,15 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                                 onTap: () {
                                   setState(() {
                                     _type = TransactionType.expense;
+                                    _selectedCategory = 'Belanja';
                                   });
                                 },
                                 child: Container(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 12),
                                   decoration: BoxDecoration(
-                                    color: _type == TransactionType.expense
-                                        ? const Color(0xFFFF7418)
+                                    color: !isIncome
+                                        ? const Color(0xFF10B981)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(24),
                                   ),
@@ -157,7 +174,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: _type == TransactionType.expense
+                                      color: !isIncome
                                           ? Colors.white
                                           : const Color(0xFF6B7280),
                                     ),
@@ -170,13 +187,14 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                                 onTap: () {
                                   setState(() {
                                     _type = TransactionType.income;
+                                    _selectedCategory = 'Gaji Bulanan';
                                   });
                                 },
                                 child: Container(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 12),
                                   decoration: BoxDecoration(
-                                    color: _type == TransactionType.income
+                                    color: isIncome
                                         ? const Color(0xFF10B981)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(24),
@@ -187,7 +205,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: _type == TransactionType.income
+                                      color: isIncome
                                           ? Colors.white
                                           : const Color(0xFF6B7280),
                                     ),
@@ -200,21 +218,32 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                       ),
                       const SizedBox(height: AppSpacing.s24),
 
-                      // Amount Input Card
+                      // Amount Input Card (Mint container for income)
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color:
+                              isIncome ? const Color(0xFFE6F7F0) : Colors.white,
                           borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: isIncome
+                                ? const Color(0xFFA7F3D0)
+                                : Colors.transparent,
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Nominal Transaksi',
+                            Text(
+                              isIncome
+                                  ? 'Nominal Pemasukan'
+                                  : 'Nominal Pengeluaran',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Color(0xFF6B7280),
+                                fontWeight: FontWeight.w600,
+                                color: isIncome
+                                    ? const Color(0xFF059669)
+                                    : const Color(0xFF6B7280),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -225,30 +254,30 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                                 FilteringTextInputFormatter.digitsOnly,
                               ],
                               style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
                                 color: Color(0xFF111827),
                               ),
                               decoration: const InputDecoration(
                                 prefixText: 'Rp ',
                                 prefixStyle: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
                                   color: Color(0xFF111827),
                                 ),
                                 border: InputBorder.none,
-                                hintText: '0',
+                                hintText: '5.500.000',
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.s20),
+                      const SizedBox(height: AppSpacing.s24),
 
-                      // Category Selector Chips
-                      const Text(
-                        'Kategori',
-                        style: TextStyle(
+                      // Category Chips
+                      Text(
+                        isIncome ? 'Sumber Pemasukan' : 'Kategori Pengeluaran',
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF111827),
@@ -256,47 +285,62 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                       ),
                       const SizedBox(height: 12),
                       Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _categories.map((category) {
-                          final isSelected = category == _selectedCategory;
-                          return ChoiceChip(
-                            label: Text(category),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _selectedCategory = category;
-                                });
-                              }
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: currentCategories.map((catObj) {
+                          final name = catObj['name']!;
+                          final icon = catObj['icon']!;
+                          final isSelected = name == _selectedCategory;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedCategory = name;
+                              });
                             },
-                            selectedColor: const Color(0xFF10B981),
-                            backgroundColor: Colors.white,
-                            labelStyle: TextStyle(
-                              color: isSelected
-                                  ? Colors.white
-                                  : const Color(0xFF4B5563),
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: BorderSide(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
                                 color: isSelected
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFFE5E7EB),
+                                    : const Color(0xFFF3F4F6),
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    icon,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    name,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF374151),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
                         }).toList(),
                       ),
-                      const SizedBox(height: AppSpacing.s20),
+                      const SizedBox(height: AppSpacing.s24),
 
                       // Description Input
-                      const Text(
-                        'Catatan / Keterangan',
-                        style: TextStyle(
+                      Text(
+                        isIncome
+                            ? 'Deskripsi Pemasukan'
+                            : 'Deskripsi Pengeluaran',
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF111827),
@@ -304,18 +348,21 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: TextField(
                           controller: _descriptionController,
-                          maxLines: 2,
-                          decoration: const InputDecoration(
-                            hintText: 'Contoh: Belanja bahan makanan mingguan',
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            hintText: isIncome
+                                ? 'Tulis detail pemasukan di sini (opsional)...'
+                                : 'Tulis detail pengeluaran di sini (opsional)...',
                             border: InputBorder.none,
-                            hintStyle: TextStyle(
+                            hintStyle: const TextStyle(
                               color: Color(0xFF9CA3AF),
                               fontSize: 14,
                             ),
@@ -338,19 +385,27 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                       backgroundColor: const Color(0xFF10B981),
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                      shape: const StadiumBorder(),
                     ),
                     onPressed: _isSaving ? null : _submitForm,
                     child: _isSaving
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Simpan Transaksi',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.check_circle_outline_rounded,
+                                  size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                isIncome
+                                    ? 'Simpan Pemasukan'
+                                    : 'Simpan Pengeluaran',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ),

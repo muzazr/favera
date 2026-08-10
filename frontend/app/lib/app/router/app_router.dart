@@ -12,9 +12,13 @@ import '../../features/finance/presentation/pages/finance_dashboard_page.dart';
 import '../../features/finance/presentation/pages/transaction_detail_page.dart';
 import '../../features/finance/presentation/pages/transaction_form_page.dart';
 import '../../features/finance/presentation/pages/transaction_list_page.dart';
+import '../../features/goals/presentation/pages/goal_detail_page.dart';
+import '../../features/goals/presentation/pages/goal_form_page.dart';
+import '../../features/goals/presentation/pages/goal_list_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
+import 'package:app/features/statements/presentation/pages/statement_review_page.dart';
 import '../../shared/widgets/placeholder_page.dart';
 import '../shell/app_shell.dart';
 import 'route_catalog_page.dart';
@@ -148,17 +152,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'transactions',
                     name: AppRouteNames.transactions,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const TransactionListPage(),
                     routes: [
                       GoRoute(
                         path: 'new',
                         name: AppRouteNames.transactionNew,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) =>
                             const TransactionFormPage(),
                       ),
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.transactionDetail,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => TransactionDetailPage(
                           transactionId: state.pathParameters['id'] ?? '',
                         ),
@@ -168,6 +175,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'statements/upload',
                     name: AppRouteNames.statementUpload,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Upload E-Statement',
                       routeName: AppRouteNames.statementUpload,
@@ -177,40 +185,40 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'statements/:id/review',
                     name: AppRouteNames.statementReview,
-                    builder: (context, state) => PlaceholderPage(
-                      title: 'Review E-Statement',
-                      routeName: AppRouteNames.statementReview,
-                      routePath:
-                          '/app/finance/statements/${state.pathParameters['id']}/review',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => StatementReviewPage(
+                      importId: state.pathParameters['id']!,
                     ),
                   ),
                   GoRoute(
                     path: 'goals',
                     name: AppRouteNames.goals,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Target Keuangan Bersama',
-                      routeName: AppRouteNames.goals,
-                      routePath: AppRoutePaths.goals,
-                    ),
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const GoalListPage(),
                     routes: [
                       GoRoute(
                         path: 'new',
                         name: AppRouteNames.goalNew,
-                        builder: (context, state) => const PlaceholderPage(
-                          title: 'Buat Goal Baru',
-                          routeName: AppRouteNames.goalNew,
-                          routePath: AppRoutePaths.goalNew,
-                        ),
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => const GoalFormPage(),
                       ),
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.goalDetail,
-                        builder: (context, state) => PlaceholderPage(
-                          title: 'Detail Target Keuangan',
-                          routeName: AppRouteNames.goalDetail,
-                          routePath:
-                              '/app/finance/goals/${state.pathParameters['id']}',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => GoalDetailPage(
+                          goalId: state.pathParameters['id']!,
                         ),
+                        routes: [
+                          GoRoute(
+                            path: 'edit',
+                            name: AppRouteNames.goalEdit,
+                            parentNavigatorKey: rootNavigatorKey,
+                            builder: (context, state) => GoalFormPage(
+                              goalId: state.pathParameters['id'],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -242,6 +250,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'chat',
                     name: AppRouteNames.chatSessions,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Sesi Chat AI Empatik',
                       routeName: AppRouteNames.chatSessions,
@@ -251,6 +260,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: ':sessionId',
                         name: AppRouteNames.chatDetail,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => PlaceholderPage(
                           title: 'Detail Chat Sesi',
                           routeName: AppRouteNames.chatDetail,
@@ -263,6 +273,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'recovery',
                     name: AppRouteNames.recoverySessions,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Ruang Pemulihan Bersama',
                       routeName: AppRouteNames.recoverySessions,
@@ -272,6 +283,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.recoveryDetail,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => PlaceholderPage(
                           title: 'Sesi Pemulihan',
                           routeName: AppRouteNames.recoveryDetail,
@@ -284,6 +296,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'professionals',
                     name: AppRouteNames.professionals,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Direktori Tenaga Profesional',
                       routeName: AppRouteNames.professionals,
@@ -293,6 +306,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.professionalDetail,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => PlaceholderPage(
                           title: 'Profil Konselor/Ahli',
                           routeName: AppRouteNames.professionalDetail,
@@ -305,6 +319,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'consultations',
                     name: AppRouteNames.consultations,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Jadwal Consultations',
                       routeName: AppRouteNames.consultations,
@@ -314,6 +329,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'simulations/new',
                     name: AppRouteNames.simulationNew,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Simulasi Dampak',
                       routeName: AppRouteNames.simulationNew,
@@ -323,6 +339,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'simulations/:id',
                     name: AppRouteNames.simulationDetail,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => PlaceholderPage(
                       title: 'Hasil Simulasi Dampak',
                       routeName: AppRouteNames.simulationDetail,
@@ -357,6 +374,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'settings',
                     name: AppRouteNames.settings,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Pengaturan Aplikasi',
                       routeName: AppRouteNames.settings,
@@ -366,6 +384,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'privacy',
                     name: AppRouteNames.privacy,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Kebijakan Privasi & Data',
                       routeName: AppRouteNames.privacy,
@@ -375,6 +394,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'family-settings',
                     name: AppRouteNames.familySettings,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PlaceholderPage(
                       title: 'Pengaturan Ruang Keluarga',
                       routeName: AppRouteNames.familySettings,
