@@ -216,6 +216,43 @@ class MockStore {
       createdAt: clock.now().subtract(const Duration(days: 5)),
     );
     _commitments[cmt1.id] = cmt1;
+
+    // 7. Seed Chat Session & Messages matching Screenshot 1
+    const defaultSessionId = 'session-demo-001';
+    final chatSess1 = ChatSession(
+      id: defaultSessionId,
+      title: 'Diskusi Keuangan Keluarga',
+      createdAt: clock.now().subtract(const Duration(hours: 2)),
+      lastMessage:
+          'Pengeluaran bulan ini overbudget suamiku pengeluarannya ga jelas, bingung mulanya dari mana.',
+    );
+    _chatSessions[defaultSessionId] = chatSess1;
+
+    final initialMsgs = [
+      ChatMessage(
+        id: 'msg-001',
+        sessionId: defaultSessionId,
+        sender: MessageSender.assistant,
+        content:
+            'Halo Budi & Siti. Saya di sini untuk membantu kalian berdiskusi soal keuangan keluarga dengan tenang. Ada yang ingin dibahas malam ini?',
+        timestamp: clock.now().subtract(const Duration(minutes: 15)),
+        suggestedActions: const [
+          'Bingung Mengenai Judol',
+          'Menanggulangi Judol',
+          'Tinjau Transaksi Anomali',
+          'Buat Target Tabungan',
+        ],
+      ),
+      ChatMessage(
+        id: 'msg-002',
+        sessionId: defaultSessionId,
+        sender: MessageSender.user,
+        content:
+            'Pengeluaran bulan ini overbudget suamiku pengeluarannya ga jelas, bingung mulanya dari mana.',
+        timestamp: clock.now().subtract(const Duration(minutes: 13)),
+      ),
+    ];
+    _chatMessages[defaultSessionId] = initialMsgs;
   }
 
   // --- Transactions Queries & Mutations ---
@@ -512,6 +549,11 @@ class MockStore {
 
   List<ChatMessage> getChatMessages(String sessionId) {
     return _chatMessages[sessionId] ?? [];
+  }
+
+  void deleteChatSession(String sessionId) {
+    _chatSessions.remove(sessionId);
+    _chatMessages.remove(sessionId);
   }
 
   ChatMessage sendChatMessage(String sessionId, String text) {
