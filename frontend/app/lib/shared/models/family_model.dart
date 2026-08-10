@@ -43,6 +43,8 @@ class FamilySpace {
     );
   }
 
+  bool get isPaired => status == FamilyStatus.active;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

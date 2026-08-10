@@ -8,6 +8,7 @@ import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/chat/presentation/pages/chat_detail_page.dart';
 import '../../features/family/presentation/pages/family_condition_page.dart';
 import '../../features/family/presentation/pages/family_connect_page.dart';
+import '../../features/family/presentation/pages/family_connection_detail_page.dart';
 import '../../features/family/presentation/pages/family_invitation_page.dart';
 import '../../features/family/presentation/pages/family_success_page.dart';
 import '../../features/family/presentation/pages/weekly_check_in_page.dart';
@@ -25,6 +26,7 @@ import '../../features/mediation/presentation/pages/professionals_page.dart';
 import '../../features/mediation/presentation/pages/simulation_result_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
+import '../../features/profile/presentation/pages/settings_page.dart';
 import '../../features/recovery/presentation/pages/recovery_detail_page.dart';
 import '../../features/recovery/presentation/pages/recovery_list_page.dart';
 import 'package:app/features/statements/presentation/pages/statement_review_page.dart';
@@ -119,6 +121,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutePaths.familySuccess,
         name: AppRouteNames.familySuccess,
         builder: (context, state) => const FamilySuccessPage(),
+      ),
+      GoRoute(
+        path: '/app/family/connection-detail',
+        name: 'familyConnectionDetail',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const FamilyConnectionDetailPage(),
       ),
       GoRoute(
         path: AppRoutePaths.weeklyCheckIn,
@@ -337,28 +345,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutePaths.profile,
                 name: AppRouteNames.profile,
-                builder: (context, state) => const PlaceholderPage(
-                  title: 'Profil & Pengaturan',
-                  routeName: AppRouteNames.profile,
-                  routePath: AppRoutePaths.profile,
-                  description: 'Kelola akun, koneksi keluarga, & privasi.',
-                  targetSubRoutes: [
-                    AppRoutePaths.settings,
-                    AppRoutePaths.privacy,
-                    AppRoutePaths.familySettings,
-                    AppRoutePaths.debugRoutes,
-                  ],
-                ),
+                builder: (context, state) => const SettingsPage(),
                 routes: [
                   GoRoute(
                     path: 'settings',
                     name: AppRouteNames.settings,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Pengaturan Aplikasi',
-                      routeName: AppRouteNames.settings,
-                      routePath: AppRoutePaths.settings,
-                    ),
+                    builder: (context, state) => const SettingsPage(),
                   ),
                   GoRoute(
                     path: 'privacy',
