@@ -18,29 +18,42 @@ class AppGradientBackground extends StatelessWidget {
         Container(
           color: AppColors.background,
         ),
-        // Top-right green blur circle glow
+        // Top-left soft lavender/purple ambient blur circle
         Positioned(
-          top: -70,
-          right: -70,
+          top: -60,
+          left: -60,
+          child: Container(
+            width: 260,
+            height: 260,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFFDDD6FE).withValues(alpha: 0.35),
+            ),
+          ),
+        ),
+        // Top-right soft sky blue/cyan ambient blur circle
+        Positioned(
+          top: -40,
+          right: -40,
           child: Container(
             width: 280,
             height: 280,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF10B981).withValues(alpha: 0.28),
+              color: const Color(0xFFBAE6FD).withValues(alpha: 0.30),
             ),
           ),
         ),
-        // Bottom-left soft mint/sky blue blur circle glow
+        // Bottom-left soft mint green ambient blur circle
         Positioned(
-          bottom: -90,
-          left: -90,
+          bottom: -80,
+          left: -80,
           child: Container(
             width: 320,
             height: 320,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF6EE7B7).withValues(alpha: 0.20),
+              color: const Color(0xFFA7F3D0).withValues(alpha: 0.35),
             ),
           ),
         ),

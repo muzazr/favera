@@ -8,6 +8,10 @@ import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/family/presentation/pages/family_connect_page.dart';
 import '../../features/family/presentation/pages/family_invitation_page.dart';
 import '../../features/family/presentation/pages/family_success_page.dart';
+import '../../features/finance/presentation/pages/finance_dashboard_page.dart';
+import '../../features/finance/presentation/pages/transaction_detail_page.dart';
+import '../../features/finance/presentation/pages/transaction_form_page.dart';
+import '../../features/finance/presentation/pages/transaction_list_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
@@ -139,46 +143,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutePaths.finance,
                 name: AppRouteNames.finance,
-                builder: (context, state) => const PlaceholderPage(
-                  title: 'Finance Dashboard',
-                  routeName: AppRouteNames.finance,
-                  routePath: AppRoutePaths.finance,
-                  description: 'Ringkasan keuangan, transaksi, & goals.',
-                  targetSubRoutes: [
-                    AppRoutePaths.transactions,
-                    AppRoutePaths.transactionNew,
-                    AppRoutePaths.statementUpload,
-                    AppRoutePaths.goals,
-                    AppRoutePaths.goalNew,
-                  ],
-                ),
+                builder: (context, state) => const FinanceDashboardPage(),
                 routes: [
                   GoRoute(
                     path: 'transactions',
                     name: AppRouteNames.transactions,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Riwayat Transaksi',
-                      routeName: AppRouteNames.transactions,
-                      routePath: AppRoutePaths.transactions,
-                    ),
+                    builder: (context, state) => const TransactionListPage(),
                     routes: [
                       GoRoute(
                         path: 'new',
                         name: AppRouteNames.transactionNew,
-                        builder: (context, state) => const PlaceholderPage(
-                          title: 'Tambah Transaksi',
-                          routeName: AppRouteNames.transactionNew,
-                          routePath: AppRoutePaths.transactionNew,
-                        ),
+                        builder: (context, state) =>
+                            const TransactionFormPage(),
                       ),
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.transactionDetail,
-                        builder: (context, state) => PlaceholderPage(
-                          title: 'Detail Transaksi',
-                          routeName: AppRouteNames.transactionDetail,
-                          routePath:
-                              '/app/finance/transactions/${state.pathParameters['id']}',
+                        builder: (context, state) => TransactionDetailPage(
+                          transactionId: state.pathParameters['id'] ?? '',
                         ),
                       ),
                     ],

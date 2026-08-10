@@ -197,6 +197,10 @@ class MockStore {
     _transactions[tx.id] = tx;
   }
 
+  bool removeTransaction(String id) {
+    return _transactions.remove(id) != null;
+  }
+
   // --- E-Statement Import & Review Queries & Mutations ---
   StatementImport createStatementImport({
     required String fileName,

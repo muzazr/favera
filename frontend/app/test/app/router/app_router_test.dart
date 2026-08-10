@@ -62,7 +62,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Finance Dashboard'), findsWidgets);
+      expect(find.text('Target Keuangan'), findsWidgets);
     });
   });
 }

@@ -18,4 +18,5 @@ abstract final class AppAssets {
   static const String transportation = 'assets/transportation.png';
   static const String googleLogo = 'assets/google_logo.png';
   static const String appleLogo = 'assets/apple_logo.png';
+  static const String danaDarurat = 'assets/dana_darurat.png';
 }
