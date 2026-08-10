@@ -270,7 +270,7 @@ class MockStore {
 
   void _loadDraftsForImport(String importId) {
     final draft1 = ParsedTransactionDraft(
-      id: 'drf-001',
+      id: 'drf-$importId-001',
       importId: importId,
       date: clock.now().subtract(const Duration(days: 3)),
       description: 'APPLE.COM/BILL',
@@ -280,7 +280,7 @@ class MockStore {
       anomalyReason: 'nominal berbeda dari kebiasaan',
     );
     final draft2 = ParsedTransactionDraft(
-      id: 'drf-002',
+      id: 'drf-$importId-002',
       importId: importId,
       date: clock.now().subtract(const Duration(days: 2)),
       description: 'STARBUCKS COFFEE',
@@ -292,7 +292,20 @@ class MockStore {
     _statementDrafts[draft1.id] = draft1;
     _statementDrafts[draft2.id] = draft2;
 
-    _statementImports[importId] = _statementImports[importId]!.copyWith(
+    final existingImport = _statementImports[importId] ??
+        StatementImport(
+          id: importId,
+          fileName: 'eStatement_GoPay_Juni2026.pdf',
+          fileSizeBytes: 2450000,
+          status: StatementImportStatus.reviewRequired,
+          providerHint: 'gopay',
+          requiresPassword: false,
+          totalDetected: 145,
+          needsReviewCount: 2,
+          uploadedAt: clock.now(),
+        );
+
+    _statementImports[importId] = existingImport.copyWith(
       status: StatementImportStatus.reviewRequired,
       needsReviewCount: 2,
       totalDetected: 145,
@@ -300,9 +313,14 @@ class MockStore {
   }
 
   List<ParsedTransactionDraft> getDrafts(String importId) {
-    return _statementDrafts.values
-        .where((d) => d.importId == importId)
-        .toList();
+    var result =
+        _statementDrafts.values.where((d) => d.importId == importId).toList();
+    if (result.isEmpty) {
+      _loadDraftsForImport(importId);
+      result =
+          _statementDrafts.values.where((d) => d.importId == importId).toList();
+    }
+    return result;
   }
 
   void updateDraftStatus(String draftId, DraftStatus newStatus) {
@@ -313,13 +331,17 @@ class MockStore {
   }
 
   bool confirmStatementImport(String importId) {
-    final import = _statementImports[importId];
+    var import = _statementImports[importId];
+    if (import == null) {
+      _loadDraftsForImport(importId);
+      import = _statementImports[importId];
+    }
     if (import == null) return false;
 
-    // Convert validated drafts to canonical transactions
+    // Convert validated or pending drafts to canonical transactions
     final drafts = getDrafts(importId);
     for (final draft in drafts) {
-      if (draft.status == DraftStatus.validated) {
+      if (draft.status != DraftStatus.deleted) {
         final tx = Transaction(
           id: 'tx-stm-${draft.id}',
           type: TransactionType.expense,
