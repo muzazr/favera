@@ -2,6 +2,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../mock/mock_error_policy.dart';
 import '../../../mock/mock_latency.dart';
 import '../../../mock/mock_store.dart';
+import '../../../shared/models/check_in_model.dart';
 import '../../../shared/models/family_model.dart';
 import 'family_repository.dart';
 
@@ -142,5 +143,37 @@ class MockFamilyRepository implements FamilyRepository {
     errorPolicy.checkAndThrow();
     await latency.delay();
     mockStore.family = null;
+  }
+
+  @override
+  Future<WeeklyCheckIn?> getCurrentCheckIn() async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    return mockStore.getCurrentCheckIn();
+  }
+
+  @override
+  Future<WeeklyCheckIn> submitCheckInAnswers({
+    required String checkInId,
+    required String emotion,
+    required String concern,
+  }) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    return mockStore.submitCheckIn(checkInId, emotion, concern);
+  }
+
+  @override
+  Future<WeeklyCheckIn?> simulatePartnerSubmit(String checkInId) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    return mockStore.simulatePartnerSubmit(checkInId);
+  }
+
+  @override
+  Future<FamilyAssessment?> getCurrentFamilyAssessment() async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    return mockStore.getCurrentFamilyAssessment();
   }
 }

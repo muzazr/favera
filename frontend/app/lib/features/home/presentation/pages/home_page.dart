@@ -94,37 +94,43 @@ class HomePage extends ConsumerWidget {
                       children: [
                         // 2. Family Status Badge (Centered Output from Model 2)
                         Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE6F7F0),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: const Color(0xFF10B981)
-                                    .withValues(alpha: 0.2),
+                          child: InkWell(
+                            onTap: () {
+                              context.push(AppRoutePaths.familyCondition);
+                            },
+                            borderRadius: BorderRadius.circular(24),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
                               ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.shield_rounded,
-                                  size: 16,
-                                  color: Color(0xFF00875A),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE6F7F0),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: const Color(0xFF10B981)
+                                      .withValues(alpha: 0.2),
                                 ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Status Keluarga : Aman Terkendali',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF111827),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.shield_rounded,
+                                    size: 16,
+                                    color: Color(0xFF00875A),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Status Keluarga : Aman Terkendali',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF111827),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

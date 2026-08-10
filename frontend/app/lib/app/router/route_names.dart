@@ -8,10 +8,12 @@ abstract final class AppRouteNames {
   static const String forgotPassword = 'forgotPassword';
   static const String profileSetup = 'profileSetup';
 
-  // Family Pairing
+  // Family Pairing & Assessment
   static const String familyConnect = 'familyConnect';
   static const String familyInvitation = 'familyInvitation';
   static const String familySuccess = 'familySuccess';
+  static const String weeklyCheckIn = 'weeklyCheckIn';
+  static const String familyCondition = 'familyCondition';
 
   // App Shell Root
   static const String appShell = 'appShell';
@@ -62,6 +64,8 @@ abstract final class AppRoutePaths {
   static const String familyConnect = '/family/connect';
   static const String familyInvitation = '/family/invitation';
   static const String familySuccess = '/family/success';
+  static const String weeklyCheckIn = '/app/family/check-in';
+  static const String familyCondition = '/app/family/condition';
 
   // Shell Tabs
   static const String home = '/app/home';
