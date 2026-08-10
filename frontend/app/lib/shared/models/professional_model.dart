@@ -8,6 +8,11 @@ class Professional {
   final String? externalUrl;
   final double rating;
   final bool isVerified;
+  final int experienceYears;
+  final String schedule;
+  final String? bio;
+  final String? whatsappUrl;
+  final String? instagramUrl;
 
   const Professional({
     required this.id,
@@ -16,8 +21,13 @@ class Professional {
     required this.specialization,
     required this.city,
     this.externalUrl,
-    this.rating = 4.8,
+    this.rating = 4.9,
     this.isVerified = true,
+    this.experienceYears = 8,
+    this.schedule = 'Senin - Jumat (10:00 - 16:00)',
+    this.bio,
+    this.whatsappUrl,
+    this.instagramUrl,
   });
 
   factory Professional.fromJson(Map<String, dynamic> json) {
@@ -28,8 +38,13 @@ class Professional {
       specialization: json['specialization'] as String,
       city: json['city'] as String,
       externalUrl: json['external_url'] as String?,
-      rating: (json['rating'] as num? ?? 4.8).toDouble(),
+      rating: (json['rating'] as num? ?? 4.9).toDouble(),
       isVerified: json['is_verified'] as bool? ?? true,
+      experienceYears: (json['experience_years'] as num? ?? 8).toInt(),
+      schedule: json['schedule'] as String? ?? 'Senin - Jumat (10:00 - 16:00)',
+      bio: json['bio'] as String?,
+      whatsappUrl: json['whatsapp_url'] as String?,
+      instagramUrl: json['instagram_url'] as String?,
     );
   }
 
@@ -43,6 +58,11 @@ class Professional {
       'external_url': externalUrl,
       'rating': rating,
       'is_verified': isVerified,
+      'experience_years': experienceYears,
+      'schedule': schedule,
+      'bio': bio,
+      'whatsapp_url': whatsappUrl,
+      'instagram_url': instagramUrl,
     };
   }
 }

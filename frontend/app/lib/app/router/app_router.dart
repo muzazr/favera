@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/widgets/component_gallery_page.dart';
 import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/chat/presentation/pages/chat_detail_page.dart';
 import '../../features/family/presentation/pages/family_condition_page.dart';
 import '../../features/family/presentation/pages/family_connect_page.dart';
 import '../../features/family/presentation/pages/family_invitation_page.dart';
@@ -18,6 +19,9 @@ import '../../features/goals/presentation/pages/goal_detail_page.dart';
 import '../../features/goals/presentation/pages/goal_form_page.dart';
 import '../../features/goals/presentation/pages/goal_list_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/mediation/presentation/pages/mediation_hub_page.dart';
+import '../../features/mediation/presentation/pages/professionals_page.dart';
+import '../../features/mediation/presentation/pages/simulation_result_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
 import '../../features/recovery/presentation/pages/recovery_detail_page.dart';
@@ -249,39 +253,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutePaths.mediation,
                 name: AppRouteNames.mediation,
-                builder: (context, state) => const PlaceholderPage(
-                  title: 'Mediasi & Pemulihan Hub',
-                  routeName: AppRouteNames.mediation,
-                  routePath: AppRoutePaths.mediation,
-                  description: 'Akses Konselor AI, Profesional, & Simulasi.',
-                  targetSubRoutes: [
-                    AppRoutePaths.chatSessions,
-                    AppRoutePaths.recoverySessions,
-                    AppRoutePaths.professionals,
-                    AppRoutePaths.consultations,
-                    AppRoutePaths.simulationNew,
-                  ],
-                ),
+                builder: (context, state) => const MediationHubPage(),
                 routes: [
                   GoRoute(
                     path: 'chat',
                     name: AppRouteNames.chatSessions,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Sesi Chat AI Empatik',
-                      routeName: AppRouteNames.chatSessions,
-                      routePath: AppRoutePaths.chatSessions,
+                    builder: (context, state) => const ChatDetailPage(
+                      sessionId: 'session-demo-001',
                     ),
                     routes: [
                       GoRoute(
                         path: ':sessionId',
                         name: AppRouteNames.chatDetail,
                         parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => PlaceholderPage(
-                          title: 'Detail Chat Sesi',
-                          routeName: AppRouteNames.chatDetail,
-                          routePath:
-                              '/app/mediation/chat/${state.pathParameters['sessionId']}',
+                        builder: (context, state) => ChatDetailPage(
+                          sessionId: state.pathParameters['sessionId'] ??
+                              'session-demo-001',
                         ),
                       ),
                     ],
@@ -307,22 +295,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'professionals',
                     name: AppRouteNames.professionals,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Direktori Tenaga Profesional',
-                      routeName: AppRouteNames.professionals,
-                      routePath: AppRoutePaths.professionals,
-                    ),
+                    builder: (context, state) => const ProfessionalsPage(),
                     routes: [
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.professionalDetail,
                         parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => PlaceholderPage(
-                          title: 'Profil Konselor/Ahli',
-                          routeName: AppRouteNames.professionalDetail,
-                          routePath:
-                              '/app/mediation/professionals/${state.pathParameters['id']}',
-                        ),
+                        builder: (context, state) => const ProfessionalsPage(),
                       ),
                     ],
                   ),
@@ -330,32 +309,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'consultations',
                     name: AppRouteNames.consultations,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Jadwal Consultations',
-                      routeName: AppRouteNames.consultations,
-                      routePath: AppRoutePaths.consultations,
-                    ),
+                    builder: (context, state) => const ProfessionalsPage(),
                   ),
                   GoRoute(
                     path: 'simulations/new',
                     name: AppRouteNames.simulationNew,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Simulasi Dampak',
-                      routeName: AppRouteNames.simulationNew,
-                      routePath: AppRoutePaths.simulationNew,
-                    ),
+                    builder: (context, state) => const SimulationResultPage(),
                   ),
                   GoRoute(
                     path: 'simulations/:id',
                     name: AppRouteNames.simulationDetail,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => PlaceholderPage(
-                      title: 'Hasil Simulasi Dampak',
-                      routeName: AppRouteNames.simulationDetail,
-                      routePath:
-                          '/app/mediation/simulations/${state.pathParameters['id']}',
-                    ),
+                    builder: (context, state) => const SimulationResultPage(),
                   ),
                 ],
               ),
