@@ -77,6 +77,16 @@ class RouteCatalogPage extends StatelessWidget {
           path: AppRoutePaths.familyInvitation,
           description: 'Undangan pairing pending/diterima',
         ),
+        RouteCatalogItem(
+          name: AppRouteNames.weeklyCheckIn,
+          path: AppRoutePaths.weeklyCheckIn,
+          description: 'Check-In Mingguan Emosional & Keuangan',
+        ),
+        RouteCatalogItem(
+          name: AppRouteNames.familyCondition,
+          path: AppRoutePaths.familyCondition,
+          description: 'Kondisi Keluarga & Asesmen Bersama',
+        ),
       ],
     ),
     RouteCatalogGroup(

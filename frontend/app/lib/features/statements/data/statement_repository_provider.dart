@@ -8,6 +8,7 @@ import 'remote_statement_repository.dart';
 import 'statement_repository.dart';
 
 final statementRepositoryProvider = Provider<StatementRepository>((ref) {
+  ref.keepAlive();
   final config = ref.watch(appConfigProvider);
   final mode = config.dataSourceFor(DataDomain.statementImport);
   if (mode == DataSourceMode.remote) {

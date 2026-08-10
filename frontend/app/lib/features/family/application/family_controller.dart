@@ -9,7 +9,10 @@ import '../data/family_repository.dart';
 import '../data/mock_family_repository.dart';
 import '../data/remote_family_repository.dart';
 
+import '../../../shared/models/check_in_model.dart';
+
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
+  ref.keepAlive();
   final config = ref.watch(appConfigProvider);
   final mode = config.dataSourceFor(DataDomain.family);
 
@@ -22,6 +25,18 @@ final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
       errorPolicy: ref.watch(mockErrorPolicyProvider),
     );
   }
+});
+
+final weeklyCheckInControllerProvider =
+    FutureProvider.autoDispose<WeeklyCheckIn?>((ref) async {
+  final repo = ref.watch(familyRepositoryProvider);
+  return repo.getCurrentCheckIn();
+});
+
+final familyAssessmentControllerProvider =
+    FutureProvider.autoDispose<FamilyAssessment?>((ref) async {
+  final repo = ref.watch(familyRepositoryProvider);
+  return repo.getCurrentFamilyAssessment();
 });
 
 class FamilyController extends AsyncNotifier<FamilySpace?> {
@@ -67,6 +82,30 @@ class FamilyController extends AsyncNotifier<FamilySpace?> {
     final space = await _repository.getFamilySpace();
     state = AsyncValue.data(space);
     _syncRouteState(space);
+  }
+
+  Future<WeeklyCheckIn> submitCheckIn({
+    required String checkInId,
+    required String emotion,
+    required String concern,
+  }) async {
+    final repo = ref.read(familyRepositoryProvider);
+    final updated = await repo.submitCheckInAnswers(
+      checkInId: checkInId,
+      emotion: emotion,
+      concern: concern,
+    );
+    ref.invalidate(weeklyCheckInControllerProvider);
+    ref.invalidate(familyAssessmentControllerProvider);
+    return updated;
+  }
+
+  Future<WeeklyCheckIn?> simulatePartnerSubmit(String checkInId) async {
+    final repo = ref.read(familyRepositoryProvider);
+    final updated = await repo.simulatePartnerSubmit(checkInId);
+    ref.invalidate(weeklyCheckInControllerProvider);
+    ref.invalidate(familyAssessmentControllerProvider);
+    return updated;
   }
 }
 

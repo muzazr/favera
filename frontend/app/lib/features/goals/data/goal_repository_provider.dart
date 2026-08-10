@@ -8,6 +8,7 @@ import 'mock_goal_repository.dart';
 import 'remote_goal_repository.dart';
 
 final goalRepositoryProvider = Provider<GoalRepository>((ref) {
+  ref.keepAlive();
   final config = ref.watch(appConfigProvider);
   final mode = config.dataSourceFor(DataDomain.goals);
   if (mode == DataSourceMode.remote) {

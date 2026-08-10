@@ -5,9 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../core/widgets/component_gallery_page.dart';
 import '../../features/auth/presentation/pages/auth_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/family/presentation/pages/family_condition_page.dart';
 import '../../features/family/presentation/pages/family_connect_page.dart';
 import '../../features/family/presentation/pages/family_invitation_page.dart';
 import '../../features/family/presentation/pages/family_success_page.dart';
+import '../../features/family/presentation/pages/weekly_check_in_page.dart';
 import '../../features/finance/presentation/pages/finance_dashboard_page.dart';
 import '../../features/finance/presentation/pages/transaction_detail_page.dart';
 import '../../features/finance/presentation/pages/transaction_form_page.dart';
@@ -18,6 +20,8 @@ import '../../features/goals/presentation/pages/goal_list_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
+import '../../features/recovery/presentation/pages/recovery_detail_page.dart';
+import '../../features/recovery/presentation/pages/recovery_list_page.dart';
 import 'package:app/features/statements/presentation/pages/statement_review_page.dart';
 import '../../shared/widgets/placeholder_page.dart';
 import '../shell/app_shell.dart';
@@ -110,6 +114,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutePaths.familySuccess,
         name: AppRouteNames.familySuccess,
         builder: (context, state) => const FamilySuccessPage(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.weeklyCheckIn,
+        name: AppRouteNames.weeklyCheckIn,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const WeeklyCheckInPage(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.familyCondition,
+        name: AppRouteNames.familyCondition,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const FamilyConditionPage(),
       ),
 
       // 4. Debug Routes
@@ -274,21 +290,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'recovery',
                     name: AppRouteNames.recoverySessions,
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const PlaceholderPage(
-                      title: 'Ruang Pemulihan Bersama',
-                      routeName: AppRouteNames.recoverySessions,
-                      routePath: AppRoutePaths.recoverySessions,
-                    ),
+                    builder: (context, state) => const RecoveryListPage(),
                     routes: [
                       GoRoute(
                         path: ':id',
                         name: AppRouteNames.recoveryDetail,
                         parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => PlaceholderPage(
-                          title: 'Sesi Pemulihan',
-                          routeName: AppRouteNames.recoveryDetail,
-                          routePath:
-                              '/app/mediation/recovery/${state.pathParameters['id']}',
+                        builder: (context, state) => RecoveryDetailPage(
+                          sessionId:
+                              state.pathParameters['id'] ?? 'rec-demo-001',
                         ),
                       ),
                     ],

@@ -3,6 +3,7 @@ import '../shared/models/check_in_model.dart';
 import '../shared/models/family_model.dart';
 import '../shared/models/goal_model.dart';
 import '../shared/models/professional_model.dart';
+import '../shared/models/recovery_model.dart';
 import '../shared/models/simulation_model.dart';
 import '../shared/models/statement_model.dart';
 import '../shared/models/transaction_model.dart';
@@ -24,6 +25,8 @@ class MockStore {
   final Map<String, List<ChatMessage>> _chatMessages = {};
   final Map<String, Professional> _professionals = {};
   final Map<String, ImpactSimulation> _simulations = {};
+  final Map<String, RecoverySession> _recoverySessions = {};
+  final Map<String, Commitment> _commitments = {};
 
   MockStore({AppClock? clock}) : clock = clock ?? SystemClock() {
     resetToSeed();
@@ -41,6 +44,8 @@ class MockStore {
     _chatMessages.clear();
     _professionals.clear();
     _simulations.clear();
+    _recoverySessions.clear();
+    _commitments.clear();
 
     if (preAuthenticate) {
       currentUser = User(
@@ -182,6 +187,35 @@ class MockStore {
     );
     _professionals[prof1.id] = prof1;
     _professionals[prof2.id] = prof2;
+
+    // 6. Seed Recovery Sessions & Commitments
+    final rec1 = RecoverySession(
+      id: 'rec-demo-001',
+      title: 'Diskusi Anggaran Hiburan & Tabungan Rumah',
+      topic: 'Pengelolaan Anggaran Bulanan',
+      status: RecoverySessionStatus.readinessCheck,
+      readinessLevel: ReadinessLevel.ready,
+      privateReflection:
+          'Saya merasa perlu lebih terbuka mengenai pos pengeluaran gaya hidup agar kita bisa capai target tabungan rumah bersama.',
+      createdAt: clock.now().subtract(const Duration(days: 2)),
+      updatedAt: clock.now().subtract(const Duration(hours: 1)),
+    );
+    _recoverySessions[rec1.id] = rec1;
+
+    final cmt1 = Commitment(
+      id: 'cmt-demo-001',
+      recoverySessionId: rec1.id,
+      title: 'Batas Pengeluaran Hiburan Rp 1.5M/Bulan',
+      description:
+          'Menyetujui alokasi pengeluaran hiburan keluarga maksimal Rp 1.500.000 per bulan dan meninjau bersama di akhir bulan.',
+      targetDate: clock.now().add(const Duration(days: 30)),
+      status: CommitmentStatus.active,
+      createdBy: 'usr-joselin-001',
+      approvedByPartner: true,
+      progressPercentage: 60,
+      createdAt: clock.now().subtract(const Duration(days: 5)),
+    );
+    _commitments[cmt1.id] = cmt1;
   }
 
   // --- Transactions Queries & Mutations ---
@@ -270,7 +304,7 @@ class MockStore {
 
   void _loadDraftsForImport(String importId) {
     final draft1 = ParsedTransactionDraft(
-      id: 'drf-001',
+      id: 'drf-$importId-001',
       importId: importId,
       date: clock.now().subtract(const Duration(days: 3)),
       description: 'APPLE.COM/BILL',
@@ -280,7 +314,7 @@ class MockStore {
       anomalyReason: 'nominal berbeda dari kebiasaan',
     );
     final draft2 = ParsedTransactionDraft(
-      id: 'drf-002',
+      id: 'drf-$importId-002',
       importId: importId,
       date: clock.now().subtract(const Duration(days: 2)),
       description: 'STARBUCKS COFFEE',
@@ -292,7 +326,20 @@ class MockStore {
     _statementDrafts[draft1.id] = draft1;
     _statementDrafts[draft2.id] = draft2;
 
-    _statementImports[importId] = _statementImports[importId]!.copyWith(
+    final existingImport = _statementImports[importId] ??
+        StatementImport(
+          id: importId,
+          fileName: 'eStatement_GoPay_Juni2026.pdf',
+          fileSizeBytes: 2450000,
+          status: StatementImportStatus.reviewRequired,
+          providerHint: 'gopay',
+          requiresPassword: false,
+          totalDetected: 145,
+          needsReviewCount: 2,
+          uploadedAt: clock.now(),
+        );
+
+    _statementImports[importId] = existingImport.copyWith(
       status: StatementImportStatus.reviewRequired,
       needsReviewCount: 2,
       totalDetected: 145,
@@ -300,9 +347,14 @@ class MockStore {
   }
 
   List<ParsedTransactionDraft> getDrafts(String importId) {
-    return _statementDrafts.values
-        .where((d) => d.importId == importId)
-        .toList();
+    var result =
+        _statementDrafts.values.where((d) => d.importId == importId).toList();
+    if (result.isEmpty) {
+      _loadDraftsForImport(importId);
+      result =
+          _statementDrafts.values.where((d) => d.importId == importId).toList();
+    }
+    return result;
   }
 
   void updateDraftStatus(String draftId, DraftStatus newStatus) {
@@ -313,13 +365,17 @@ class MockStore {
   }
 
   bool confirmStatementImport(String importId) {
-    final import = _statementImports[importId];
+    var import = _statementImports[importId];
+    if (import == null) {
+      _loadDraftsForImport(importId);
+      import = _statementImports[importId];
+    }
     if (import == null) return false;
 
-    // Convert validated drafts to canonical transactions
+    // Convert validated or pending drafts to canonical transactions
     final drafts = getDrafts(importId);
     for (final draft in drafts) {
-      if (draft.status == DraftStatus.validated) {
+      if (draft.status != DraftStatus.deleted) {
         final tx = Transaction(
           id: 'tx-stm-${draft.id}',
           type: TransactionType.expense,
@@ -386,23 +442,67 @@ class MockStore {
 
   // --- Check-In Queries & Mutations ---
   WeeklyCheckIn? getCurrentCheckIn() {
-    return _checkIns.values.firstOrNull;
+    return _checkIns.values.firstOrNull ??
+        WeeklyCheckIn(
+          id: 'chk-week-32',
+          weekPeriod: 'Minggu ke-3, Juli 2026',
+          status: CheckInStatus.open,
+          myEmotion: 'damai',
+          mainConcern: 'keuangan',
+          partnerSubmitted: false,
+          createdAt: clock.now(),
+        );
   }
 
-  void submitCheckIn(String checkInId, String emotion, String concern) {
+  WeeklyCheckIn submitCheckIn(
+      String checkInId, String emotion, String concern) {
+    var chk = _checkIns[checkInId] ??
+        WeeklyCheckIn(
+          id: checkInId,
+          weekPeriod: 'Minggu ke-3, Juli 2026',
+          status: CheckInStatus.open,
+          myEmotion: emotion,
+          mainConcern: concern,
+          partnerSubmitted: true,
+          createdAt: clock.now(),
+        );
+
+    chk = chk.copyWith(
+      myEmotion: emotion,
+      mainConcern: concern,
+      status: CheckInStatus.completed,
+      sharedSummary:
+          'Keuangan bulan ini stabil dan komunikasi dari Check-In mingguan menunjukkan tingkat stres yang rendah. Pertahankan ritme ini!',
+    );
+    _checkIns[checkInId] = chk;
+    return chk;
+  }
+
+  WeeklyCheckIn? simulatePartnerSubmit(String checkInId) {
     final chk = _checkIns[checkInId];
-    if (chk != null) {
-      _checkIns[checkInId] = chk.copyWith(
-        myEmotion: emotion,
-        mainConcern: concern,
-        status: chk.partnerSubmitted
-            ? CheckInStatus.completed
-            : CheckInStatus.waitingForPartner,
-        sharedSummary: chk.partnerSubmitted
-            ? 'Hasil check-in minggu ini menunjukkan komunikasi cukup lancar dengan fokus perhatian pada pengelolaan anggaran bulanan.'
-            : null,
-      );
-    }
+    if (chk == null) return null;
+
+    final updated = chk.copyWith(
+      partnerSubmitted: true,
+      status: CheckInStatus.completed,
+      sharedSummary:
+          'Keuangan bulan ini stabil dan komunikasi dari Check-In mingguan menunjukkan tingkat stres yang rendah. Pertahankan ritme ini!',
+    );
+    _checkIns[checkInId] = updated;
+    return updated;
+  }
+
+  FamilyAssessment? getCurrentFamilyAssessment() {
+    return _assessments.values.firstOrNull ??
+        FamilyAssessment(
+          id: 'asm-001',
+          level: AssessmentLevel.stable,
+          summaryText:
+              'Keuangan bulan ini stabil dan komunikasi dari Check-In mingguan menunjukkan tingkat stres yang rendah. Pertahankan ritme ini!',
+          recommendedAction:
+              'Pertahankan komitmen tabungan bulanan dan lakukan check-in mingguan secara rutin.',
+          createdAt: clock.now(),
+        );
   }
 
   // --- Chat Queries & Mutations ---
@@ -453,5 +553,72 @@ class MockStore {
     );
 
     return assistantMsg;
+  }
+
+  // --- Recovery Sessions & Commitments Queries & Mutations ---
+  List<RecoverySession> getRecoverySessions() {
+    return _recoverySessions.values.toList();
+  }
+
+  RecoverySession getRecoverySession(String id) {
+    return _recoverySessions[id] ??
+        RecoverySession(
+          id: id,
+          title: 'Diskusi Anggaran Hiburan & Tabungan Rumah',
+          topic: 'Pengelolaan Anggaran Bulanan',
+          status: RecoverySessionStatus.readinessCheck,
+          readinessLevel: ReadinessLevel.ready,
+          createdAt: clock.now(),
+          updatedAt: clock.now(),
+        );
+  }
+
+  RecoverySession createRecoverySession(String title, String topic) {
+    final session = RecoverySession(
+      id: 'rec-${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      topic: topic,
+      status: RecoverySessionStatus.readinessCheck,
+      createdAt: clock.now(),
+      updatedAt: clock.now(),
+    );
+    _recoverySessions[session.id] = session;
+    return session;
+  }
+
+  RecoverySession updateRecoverySession(RecoverySession session) {
+    _recoverySessions[session.id] = session;
+    return session;
+  }
+
+  List<Commitment> getCommitments() {
+    return _commitments.values.toList();
+  }
+
+  Commitment createCommitment({
+    required String recoverySessionId,
+    required String title,
+    required String description,
+    required DateTime targetDate,
+  }) {
+    final cmt = Commitment(
+      id: 'cmt-${DateTime.now().millisecondsSinceEpoch}',
+      recoverySessionId: recoverySessionId,
+      title: title,
+      description: description,
+      targetDate: targetDate,
+      status: CommitmentStatus.active,
+      createdBy: currentUser?.id ?? 'usr-joselin-001',
+      approvedByPartner: true,
+      progressPercentage: 10,
+      createdAt: clock.now(),
+    );
+    _commitments[cmt.id] = cmt;
+    return cmt;
+  }
+
+  Commitment updateCommitment(Commitment cmt) {
+    _commitments[cmt.id] = cmt;
+    return cmt;
   }
 }

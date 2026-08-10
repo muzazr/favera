@@ -92,379 +92,371 @@ class _StatementReviewPageState extends ConsumerState<StatementReviewPage> {
             final pendingDrafts =
                 drafts.where((d) => d.status == DraftStatus.pending).toList();
 
-            return SafeArea(
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 1. Hero Summary Card (Statement BCA Berhasil Dibaca)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.04),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                  // 1. Hero Summary Card (Statement BCA Berhasil Dibaca)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                size: 16,
+                                color: Colors.white,
+                              ),
                             ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFF10B981),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.check,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    const Expanded(
-                                      child: Text(
-                                        'Statement BCA Berhasil Dibaca',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF111827),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                const Divider(
-                                    color: Color(0xFFF3F4F6), height: 1),
-                                const SizedBox(height: 16),
-
-                                // Grid Total Transaksi & Periode
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const Text(
-                                            'Total Transaksi',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Color(0xFF6B7280),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '${drafts.length + 143}',
-                                            style: const TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF111827),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Periode',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Color(0xFF6B7280),
-                                            ),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            'Juni 2026',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF111827),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.s24),
-
-                          // 2. Section Header: Perlu Konfirmasi Anda [Count Badge]
-                          Row(
-                            children: [
-                              const Text(
-                                'Perlu Konfirmasi Anda',
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text(
+                                'Statement E-Statement / GoPay Berhasil Dibaca',
                                 style: TextStyle(
-                                  fontSize: 17,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF111827),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Container(
-                                width: 22,
-                                height: 22,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFEF4444),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '${pendingDrafts.length}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(color: Color(0xFFF3F4F6), height: 1),
+                        const SizedBox(height: 16),
 
-                          // Pending Draft Cards
-                          if (pendingDrafts.isEmpty)
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF0FDF4),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Row(
+                        // Grid Total Transaksi & Periode
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.check_circle_outline,
-                                      color: Color(0xFF10B981)),
-                                  SizedBox(width: 12),
-                                  Text(
-                                    'Semua transaksi anomali telah terkonfirmasi!',
+                                  const Text(
+                                    'Total Transaksi',
                                     style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF166534),
+                                      fontSize: 13,
+                                      color: Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${drafts.length + 143}',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF111827),
                                     ),
                                   ),
                                 ],
                               ),
-                            )
-                          else
-                            ...pendingDrafts
-                                .map((draft) => _buildDraftCard(draft)),
-
-                          const SizedBox(height: AppSpacing.s20),
-
-                          // 3. Collapsible Accordion: 143 Transaksi Normal
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.04),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
                             ),
-                            child: Column(
-                              children: [
-                                InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _isNormalTransactionsExpanded =
-                                          !_isNormalTransactionsExpanded;
-                                    });
-                                  },
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 16),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          '143 Transaksi Normal',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF111827),
-                                          ),
-                                        ),
-                                        Icon(
-                                          _isNormalTransactionsExpanded
-                                              ? Icons.keyboard_arrow_up_rounded
-                                              : Icons
-                                                  .keyboard_arrow_down_rounded,
-                                          color: const Color(0xFF6B7280),
-                                        ),
-                                      ],
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Periode',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Color(0xFF6B7280),
                                     ),
                                   ),
-                                ),
-                                if (_isNormalTransactionsExpanded) ...[
-                                  const Divider(
-                                      height: 1, color: Color(0xFFF3F4F6)),
-                                  ListView.separated(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    padding: const EdgeInsets.all(16),
-                                    itemCount: 3,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: 12),
-                                    itemBuilder: (context, idx) {
-                                      final items = [
-                                        {
-                                          'title': 'ALFAMART GATOT SUBROTO',
-                                          'date': '14 Juni 2026',
-                                          'amount': 'Rp 84.500'
-                                        },
-                                        {
-                                          'title': 'PLN PREPAID TOKEN',
-                                          'date': '12 Juni 2026',
-                                          'amount': 'Rp 201.500'
-                                        },
-                                        {
-                                          'title': 'TOPUP GOPAY DRIVER',
-                                          'date': '10 Juni 2026',
-                                          'amount': 'Rp 150.000'
-                                        },
-                                      ];
-                                      final item = items[idx];
-                                      return Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                item['title']!,
-                                                style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Color(0xFF111827),
-                                                ),
-                                              ),
-                                              Text(
-                                                item['date']!,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: Color(0xFF9CA3AF),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Text(
-                                            '- ${item['amount']}',
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF374151),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Juni 2026',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF111827),
+                                    ),
                                   ),
                                 ],
-                              ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.s24),
+
+                  // 2. Section Header: Perlu Konfirmasi Anda [Count Badge]
+                  Row(
+                    children: [
+                      const Text(
+                        'Perlu Konfirmasi Anda',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${pendingDrafts.length}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          const SizedBox(height: 32),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Pending Draft Cards
+                  if (pendingDrafts.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.check_circle_outline,
+                              color: Color(0xFF10B981)),
+                          SizedBox(width: 12),
+                          Text(
+                            'Semua transaksi anomali\ntelah terkonfirmasi!',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF166534),
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                  ),
+                    )
+                  else
+                    ...pendingDrafts.map((draft) => _buildDraftCard(draft)),
 
-                  // 4. Sticky CTA Button (Simpan ke Data Keuangan)
+                  const SizedBox(height: AppSpacing.s20),
+
+                  // 3. Collapsible Accordion: 143 Transaksi Normal
                   Container(
-                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _isConfirming
-                            ? null
-                            : () async {
-                                setState(() => _isConfirming = true);
-                                try {
-                                  final success = await ref
-                                      .read(statementUploadControllerProvider
-                                          .notifier)
-                                      .confirmImport(widget.importId);
-
-                                  if (context.mounted && success) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'E-Statement berhasil disimpan ke Data Keuangan!'),
-                                        backgroundColor: Color(0xFF10B981),
-                                      ),
-                                    );
-                                    context.go(AppRoutePaths.finance);
-                                  }
-                                } finally {
-                                  if (mounted) {
-                                    setState(() => _isConfirming = false);
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10B981),
-                          foregroundColor: Colors.white,
-                          shape: const StadiumBorder(),
-                          elevation: 0,
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
                         ),
-                        child: _isConfirming
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _isNormalTransactionsExpanded =
+                                  !_isNormalTransactionsExpanded;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  '143 Transaksi Normal',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF111827),
+                                  ),
                                 ),
-                              )
-                            : const Text(
-                                'Simpan ke Data Keuangan',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                Icon(
+                                  _isNormalTransactionsExpanded
+                                      ? Icons.keyboard_arrow_up_rounded
+                                      : Icons.keyboard_arrow_down_rounded,
+                                  color: const Color(0xFF6B7280),
                                 ),
-                              ),
-                      ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_isNormalTransactionsExpanded) ...[
+                          const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16),
+                            itemCount: 3,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, idx) {
+                              final items = [
+                                {
+                                  'title': 'ALFAMART GATOT SUBROTO',
+                                  'date': '14 Juni 2026',
+                                  'amount': 'Rp 84.500'
+                                },
+                                {
+                                  'title': 'PLN PREPAID TOKEN',
+                                  'date': '12 Juni 2026',
+                                  'amount': 'Rp 201.500'
+                                },
+                                {
+                                  'title': 'TOPUP GOPAY DRIVER',
+                                  'date': '10 Juni 2026',
+                                  'amount': 'Rp 150.000'
+                                },
+                              ];
+                              final item = items[idx];
+                              return Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['title']!,
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF111827),
+                                        ),
+                                      ),
+                                      Text(
+                                        item['date']!,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF9CA3AF),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '- ${item['amount']}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF374151),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 32),
                 ],
               ),
             );
           },
+        ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 12,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 16,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _isConfirming
+                  ? null
+                  : () async {
+                      setState(() => _isConfirming = true);
+                      try {
+                        final success = await ref
+                            .read(statementUploadControllerProvider.notifier)
+                            .confirmImport(widget.importId);
+
+                        if (context.mounted && success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'E-Statement berhasil disimpan ke Data Keuangan!'),
+                              backgroundColor: Color(0xFF10B981),
+                            ),
+                          );
+                          context.go(AppRoutePaths.finance);
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => _isConfirming = false);
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(),
+                elevation: 0,
+              ),
+              child: _isConfirming
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Simpan ke Data Keuangan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ),
         ),
       ),
     );
@@ -560,11 +552,15 @@ class _StatementReviewPageState extends ConsumerState<StatementReviewPage> {
           const SizedBox(height: 16),
 
           // Action Row
-          if (draft.id == 'drf-001') ...[
+          // NOTE: Global theme sets minimumSize: Size(double.infinity, 48).
+          // Any ElevatedButton NOT inside Expanded in a Row MUST override
+          // minimumSize: Size.zero to avoid BoxConstraints infinite-width crash.
+          if (draft.id.endsWith('001') || draft.category == 'Hiburan') ...[
             Row(
               children: [
                 Expanded(
                   child: Container(
+                    height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -575,6 +571,7 @@ class _StatementReviewPageState extends ConsumerState<StatementReviewPage> {
                       child: DropdownButton<String>(
                         value: selectedCat,
                         isExpanded: true,
+                        isDense: true,
                         icon: const Icon(Icons.keyboard_arrow_down_rounded,
                             size: 18),
                         style: const TextStyle(
@@ -590,9 +587,12 @@ class _StatementReviewPageState extends ConsumerState<StatementReviewPage> {
                           }
                         },
                         items: _categoryOptions
-                            .map((c) => DropdownMenuItem(
+                            .map((c) => DropdownMenuItem<String>(
                                   value: c,
-                                  child: Text('❓ $c'),
+                                  child: Text(
+                                    '❓ $c',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ))
                             .toList(),
                       ),
@@ -600,22 +600,35 @@ class _StatementReviewPageState extends ConsumerState<StatementReviewPage> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    ref
-                        .read(statementUploadControllerProvider.notifier)
-                        .validateDraft(widget.importId, draft.id,
-                            category: selectedCat);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    foregroundColor: Colors.white,
-                    shape: const StadiumBorder(),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
+                // Must override minimumSize because global theme sets
+                // Size(double.infinity, 48) which crashes inside a Row
+                // without an Expanded wrapper.
+                SizedBox(
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ref
+                          .read(statementUploadControllerProvider.notifier)
+                          .validateDraft(widget.importId, draft.id,
+                              category: selectedCat);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                      elevation: 0,
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 0),
+                    ),
+                    child: const Text(
+                      'Validasi',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                  child: const Text('Validasi'),
                 ),
               ],
             ),

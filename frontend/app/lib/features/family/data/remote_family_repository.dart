@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/errors/app_failure.dart';
+import '../../../shared/models/check_in_model.dart';
 import '../../../shared/models/family_model.dart';
 import 'family_repository.dart';
 
@@ -92,6 +93,68 @@ class RemoteFamilyRepository implements FamilyRepository {
         data: {'invitation_id': invitationId},
       );
     } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<WeeklyCheckIn?> getCurrentCheckIn() async {
+    try {
+      final response = await apiClient.dio.get('/check-ins/current');
+      final data = response.data['data'] as Map<String, dynamic>?;
+      if (data == null) return null;
+      return WeeklyCheckIn.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<WeeklyCheckIn> submitCheckInAnswers({
+    required String checkInId,
+    required String emotion,
+    required String concern,
+  }) async {
+    try {
+      final response = await apiClient.dio.post(
+        '/check-ins/$checkInId/submit',
+        data: {
+          'my_emotion': emotion,
+          'main_concern': concern,
+        },
+      );
+      final data = response.data['data'] as Map<String, dynamic>;
+      return WeeklyCheckIn.fromJson(data);
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<WeeklyCheckIn?> simulatePartnerSubmit(String checkInId) async {
+    try {
+      final response = await apiClient.dio.post(
+        '/check-ins/$checkInId/simulate-partner-submit',
+      );
+      final data = response.data['data'] as Map<String, dynamic>?;
+      if (data == null) return null;
+      return WeeklyCheckIn.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<FamilyAssessment?> getCurrentFamilyAssessment() async {
+    try {
+      final response = await apiClient.dio.get('/family-assessments/current');
+      final data = response.data['data'] as Map<String, dynamic>?;
+      if (data == null) return null;
+      return FamilyAssessment.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
       throw _handleDioError(e);
     }
   }

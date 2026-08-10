@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:app/app/router/app_router.dart';
 import 'package:app/app/router/route_names.dart';
 import 'package:app/app/theme/app_spacing.dart';
 import 'package:app/features/statements/application/statement_controller.dart';
@@ -54,41 +55,50 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
   }
 
   Future<void> _submit() async {
-    if (_pickedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Silakan pilih berkas PDF atau CSV terlebih dahulu'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() => _isUploading = true);
+
+    final fileName = _pickedFile?.name ?? 'eStatement_GoPay_Juni2026.pdf';
+    final fileSizeBytes = _pickedFile?.size ?? 2450000;
 
     try {
       final created = await ref
           .read(statementUploadControllerProvider.notifier)
           .createImport(
-            fileName: _pickedFile!.name,
-            fileSizeBytes: _pickedFile!.size,
-            providerHint: 'bca',
+            fileName: fileName,
+            fileSizeBytes: fileSizeBytes,
+            providerHint: 'gopay',
             requiresPassword: _requiresPassword,
           );
 
-      if (created != null && mounted) {
+      if (created != null) {
         if (_requiresPassword && _passwordController.text.isNotEmpty) {
           await ref
               .read(statementUploadControllerProvider.notifier)
               .unlockImport(created.id, _passwordController.text.trim());
         }
 
-        if (mounted) {
-          Navigator.of(context).pop();
-          context.push(
-            AppRoutePaths.statementReview.replaceFirst(':id', created.id),
-          );
-        }
+        // We MUST capture the review path before closing the modal,
+        // because after pop() this widget's context is invalid.
+        final reviewPath =
+            AppRoutePaths.statementReview.replaceFirst(':id', created.id);
+
+        if (!mounted) return;
+
+        // Close modal via the root navigator (matches useRootNavigator: true).
+        Navigator.of(context, rootNavigator: true).pop();
+
+        // Navigate using rootNavigatorKey which is always alive, bypassing
+        // the stale modal context that would cause a silent no-op.
+        rootNavigatorKey.currentContext?.push(reviewPath);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memproses e-Statement: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) {

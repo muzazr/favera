@@ -11,7 +11,7 @@ final statementDraftsControllerProvider = FutureProvider.family
   return repo.getDraftTransactions(importId);
 });
 
-final statementUploadControllerProvider = StateNotifierProvider.autoDispose<
+final statementUploadControllerProvider = StateNotifierProvider<
     StatementUploadController, AsyncValue<StatementImport?>>((ref) {
   return StatementUploadController(ref);
 });

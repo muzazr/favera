@@ -22,6 +22,11 @@ final mockErrorPolicyProvider = Provider<MockErrorPolicy>((ref) {
 });
 
 final mockStoreProvider = Provider<MockStore>((ref) {
+  // keepAlive() ensures the same MockStore instance is reused for the entire
+  // app session. Without this, provider rebuilds (e.g. triggered by navigation
+  // or config changes) would create a fresh, empty MockStore and all in-memory
+  // draft/transaction data written by one repository would be invisible to another.
+  ref.keepAlive();
   final clock = ref.watch(mockClockProvider);
   return MockStore(clock: clock);
 });
