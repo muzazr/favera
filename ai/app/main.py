@@ -54,7 +54,7 @@ def evaluate(payload: EvaluateRequest) -> dict[str, object]:
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail="Model 1 evaluation failed.",
+            detail=f"Model 1 evaluation failed: {exc}",
         ) from exc
 
 

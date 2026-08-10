@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class CanonicalTransaction(BaseModel):
@@ -102,28 +102,54 @@ class TransactionInput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     transaction_id: str | None = None
-    timestamp: datetime
+    timestamp: datetime | None = None
+    transaction_at: datetime | None = None
     amount: float = Field(ge=0)
     recipient_id: str | None = None
+    counterparty_id: str | None = None
     direction: str | None = None
     transaction_type: str | None = None
+    category: str | None = None
     description: str | None = None
     balance_before: float | None = None
     balance_after: float | None = None
+
+    @model_validator(mode="after")
+    def validate_timestamps_and_recipients(self) -> "TransactionInput":
+        if self.timestamp is None and self.transaction_at is None:
+            raise ValueError("Evaluasi transaksi membutuhkan 'timestamp' atau 'transaction_at'.")
+        if self.timestamp is None and self.transaction_at is not None:
+            self.timestamp = self.transaction_at
+        if self.recipient_id is None and self.counterparty_id is not None:
+            self.recipient_id = self.counterparty_id
+        return self
 
 
 class HistoryTransactionInput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     transaction_id: str | None = None
-    timestamp: datetime
+    timestamp: datetime | None = None
+    transaction_at: datetime | None = None
     amount: float = Field(ge=0)
     recipient_id: str | None = None
+    counterparty_id: str | None = None
     direction: str | None = None
     transaction_type: str | None = None
+    category: str | None = None
     description: str | None = None
     balance_before: float | None = None
     balance_after: float | None = None
+
+    @model_validator(mode="after")
+    def validate_timestamps_and_recipients(self) -> "HistoryTransactionInput":
+        if self.timestamp is None and self.transaction_at is None:
+            raise ValueError("Transaksi riwayat membutuhkan 'timestamp' atau 'transaction_at'.")
+        if self.timestamp is None and self.transaction_at is not None:
+            self.timestamp = self.transaction_at
+        if self.recipient_id is None and self.counterparty_id is not None:
+            self.recipient_id = self.counterparty_id
+        return self
 
 
 class EvaluateRequest(BaseModel):
@@ -147,9 +173,10 @@ class EvaluateResponse(BaseModel):
     attention_score: float
     attention_level: str
     requires_confirmation: bool
-    component_scores: dict[str, float]
+    component_scores: dict[str, float | None]
     reason_codes: list[dict[str, Any]]
     components: dict[str, Any]
     versions: dict[str, Any]
     processing: dict[str, Any]
+
 
