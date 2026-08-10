@@ -169,24 +169,50 @@ class MockStore {
     // 5. Seed Professionals
     final prof1 = Professional(
       id: 'prof-001',
-      name: 'Dr. Sarah Amalia, M.Psi',
+      name: 'Dra. Sarah Amelia, M.Psi',
       category: 'psikolog',
-      specialization: 'Psikolog Perkahwinan & Keluarga',
+      specialization: 'Psikolog Klinis & Pernikahan',
       city: 'Jakarta Selatan',
       rating: 4.9,
-      externalUrl: 'https://favera.id/professionals/sarah-amalia',
+      experienceYears: 8,
+      schedule: 'Senin - Jumat (10:00 - 16:00)',
+      bio:
+          'Berpengalaman mendampingi lebih dari 200+ pasangan dalam memulihkan komunikasi keluarga dan mengurai konflik emosional.',
+      whatsappUrl: 'https://wa.me/6281234567890',
+      instagramUrl: 'https://instagram.com/favera_id',
+      externalUrl: 'https://favera.id/professionals/sarah-amelia',
     );
     final prof2 = Professional(
       id: 'prof-002',
-      name: 'Budi Santoso, CFP®',
+      name: 'Bapak Andi Susanto, S.Psi',
       category: 'konselor_finansial',
-      specialization: 'Perencana Keuangan Keluarga',
+      specialization: 'Konselor Finansial & Mediasi',
       city: 'Surabaya',
       rating: 4.8,
-      externalUrl: 'https://favera.id/professionals/budi-santoso',
+      experienceYears: 10,
+      schedule: 'Senin - Jumat (10:00 - 16:00)',
+      bio:
+          'Spesialis perencana keuangan keluarga, perhitung penyesuaian biaya hidup, dan konsolidasi anggaran.',
+      whatsappUrl: 'https://wa.me/6281234567891',
+      externalUrl: 'https://favera.id/professionals/andi-susanto',
+    );
+    final prof3 = Professional(
+      id: 'prof-003',
+      name: 'Rina Wijaya, M.Psi., Psikolog',
+      category: 'psikolog',
+      specialization: 'Psikolog Anak & Pendampingan Emosi',
+      city: 'Bandung',
+      rating: 4.9,
+      experienceYears: 7,
+      schedule: 'Senin - Sabtu (09:00 - 15:00)',
+      bio:
+          'Mendampingi anak dalam masa transisi dan adaptasi perubahan kondisi keuangan keluarga.',
+      whatsappUrl: 'https://wa.me/6281234567892',
+      externalUrl: 'https://favera.id/professionals/rina-wijaya',
     );
     _professionals[prof1.id] = prof1;
     _professionals[prof2.id] = prof2;
+    _professionals[prof3.id] = prof3;
 
     // 6. Seed Recovery Sessions & Commitments
     final rec1 = RecoverySession(
@@ -662,5 +688,29 @@ class MockStore {
   Commitment updateCommitment(Commitment cmt) {
     _commitments[cmt.id] = cmt;
     return cmt;
+  }
+
+  // --- Professionals & Impact Simulation Queries ---
+  List<Professional> getProfessionals([String? category]) {
+    final list = _professionals.values.toList();
+    if (category == null || category.isEmpty || category == 'all') {
+      return list;
+    }
+    return list.where((p) => p.category == category).toList();
+  }
+
+  ImpactSimulation getImpactSimulation() {
+    return const ImpactSimulation(
+      id: 'sim-001',
+      monthlyLivingCost: 12500000,
+      childCount: 2,
+      debtAmount: 0,
+      financialImpactText:
+          'Proyeksi sisa saldo bersih individu Anda adalah Rp 3.750.000 setelah estimasi pembagian dan biaya hukum.',
+      childImpactText:
+          'Kebutuhan logistik baru anak diperkirakan sebesar Rp 2.800.000/bln dan memerlukan waktu adaptasi 6-12 bulan.',
+      disclaimer:
+          'Simulasi ini bersifat proyeksi indikatif netral untuk membantu perencanaan finansial keluarga, bukan nasihat hukum atau prediksi perceraian.',
+    );
   }
 }
