@@ -20,6 +20,7 @@ import '../../features/goals/presentation/pages/goal_form_page.dart';
 import '../../features/goals/presentation/pages/goal_list_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/mediation/presentation/pages/mediation_hub_page.dart';
+import '../../features/mediation/presentation/pages/professional_detail_page.dart';
 import '../../features/mediation/presentation/pages/professionals_page.dart';
 import '../../features/mediation/presentation/pages/simulation_result_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
@@ -301,7 +302,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         path: ':id',
                         name: AppRouteNames.professionalDetail,
                         parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => const ProfessionalsPage(),
+                        builder: (context, state) => ProfessionalDetailPage(
+                          id: state.pathParameters['id'] ?? 'prof-001',
+                        ),
                       ),
                     ],
                   ),
