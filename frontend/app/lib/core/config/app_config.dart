@@ -19,7 +19,7 @@ class AppConfig {
     const rawMode = String.fromEnvironment('APP_MODE', defaultValue: 'mock');
     const rawApiUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'https://favera-backend.vercel.app/api/v1',
+      defaultValue: 'https://favera-backend.vercel.app',
     );
     const rawEnv = String.fromEnvironment('APP_ENV', defaultValue: 'dev');
 

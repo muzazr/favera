@@ -13,7 +13,7 @@ void main() {
       expect(config.isRemote, isFalse);
       expect(config.isHybrid, isFalse);
       expect(config.environment, equals(AppEnvironment.dev));
-      expect(config.apiBaseUrl, equals('https://favera-backend.vercel.app/api/v1'));
+      expect(config.apiBaseUrl, equals('https://favera-backend.vercel.app'));
     });
 
     test('dataSourceFor in mock mode returns mock for all domains', () {

@@ -65,6 +65,7 @@ class RemoteAuthRepository implements AuthRepository {
   }) async {
     try {
       final response = await apiClient.dio.post('/auth/register', data: {
+        'display_name': name,
         'name': name,
         'email': email,
         'password': password,
@@ -150,6 +151,7 @@ class RemoteAuthRepository implements AuthRepository {
   }) async {
     try {
       final response = await apiClient.dio.patch('/me', data: {
+        if (name != null) 'display_name': name,
         if (name != null) 'name': name,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       });

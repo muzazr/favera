@@ -105,7 +105,7 @@ void main() {
 
       final interceptor = AuthInterceptor(
         tokenStorage: mockStorage,
-        apiBaseUrl: 'https://favera-backend.vercel.app/api/v1',
+        apiBaseUrl: 'https://favera-backend.vercel.app',
       );
 
       final options = RequestOptions(path: '/me');
@@ -121,7 +121,7 @@ void main() {
 
       final interceptor = AuthInterceptor(
         tokenStorage: mockStorage,
-        apiBaseUrl: 'https://favera-backend.vercel.app/api/v1',
+        apiBaseUrl: 'https://favera-backend.vercel.app',
       );
 
       final options = RequestOptions(path: '/auth/login');

@@ -20,22 +20,16 @@ Jangan menggabungkan route lama dan baru hanya agar layar "kelihatan jalan". Kal
 
 ## 2. Runtime base URL
 
-Public backend domain yang diberikan backend:
+Public backend domain terdeploy di Vercel:
 
 ```text
-https://favera-backend.vercel.app/
+https://favera-backend.vercel.app
 ```
 
-Public API base path berdasarkan contract:
+Gunakan satu environment/config value (tanpa prefix `/api/v1` karena route di-mount langsung di root backend Vercel):
 
 ```text
-/api/v1
-```
-
-Gunakan satu environment/config value:
-
-```text
-https://favera-backend.vercel.app/api/v1
+https://favera-backend.vercel.app
 ```
 
 Contoh smoke test:

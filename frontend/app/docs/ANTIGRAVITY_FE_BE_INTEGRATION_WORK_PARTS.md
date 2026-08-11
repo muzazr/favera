@@ -77,7 +77,7 @@ POST /auth/refresh
 ## Tasks
 
 1. Set environment base:
-   `https://favera-backend.vercel.app/api/v1`
+   `https://favera-backend.vercel.app`
 2. Pastikan Dio/API client hanya dibuat lewat dependency injection/config existing.
 3. Tambahkan bearer token interceptor.
 4. Implement refresh-token flow satu kali per failed request.

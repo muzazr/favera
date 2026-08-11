@@ -36,7 +36,7 @@ Dilarang:
 
 ## 3. Konvensi transport
 
-- base path: `/api/v1`;
+- base path: `/` (pada live backend `https://favera-backend.vercel.app`);
 - ID: UUID;
 - field: `snake_case`;
 - date-time: ISO 8601 UTC;

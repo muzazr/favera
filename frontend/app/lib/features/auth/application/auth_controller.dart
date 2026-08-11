@@ -124,12 +124,17 @@ class AuthController extends AsyncNotifier<User?> {
   }
 
   Future<void> completeOnboarding() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final updated = await _repository.completeOnboarding();
-      _syncRouteState(updated);
-      return updated;
-    });
+    final currentUser = state.value;
+    if (currentUser != null) {
+      state = const AsyncValue.loading();
+      state = await AsyncValue.guard(() async {
+        final updated = await _repository.completeOnboarding();
+        _syncRouteState(updated);
+        return updated;
+      });
+    } else {
+      ref.read(routeStateProvider.notifier).setOnboardingCompleted(true);
+    }
   }
 }
 
