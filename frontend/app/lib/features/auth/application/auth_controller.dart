@@ -58,6 +58,7 @@ class AuthController extends AsyncNotifier<User?> {
       routeNotifier.setProfileCompleted(user.name.isNotEmpty);
     } else {
       routeNotifier.setAuthenticated(false);
+      routeNotifier.setProfileCompleted(false);
     }
   }
 
@@ -102,6 +103,13 @@ class AuthController extends AsyncNotifier<User?> {
     await _repository.forgotPassword(email: email);
   }
 
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    await _repository.resetPassword(token: token, newPassword: newPassword);
+  }
+
   Future<bool> updateProfile({String? name, String? avatarUrl}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -116,8 +124,12 @@ class AuthController extends AsyncNotifier<User?> {
   }
 
   Future<void> completeOnboarding() async {
-    await _repository.completeOnboarding();
-    ref.read(routeStateProvider.notifier).setOnboardingCompleted(true);
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final updated = await _repository.completeOnboarding();
+      _syncRouteState(updated);
+      return updated;
+    });
   }
 }
 
