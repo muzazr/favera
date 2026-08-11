@@ -119,7 +119,7 @@ class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
                           if (context.canPop()) {
                             context.pop();
                           } else {
-                            context.go(AppRoutePaths.home);
+                            context.go(AppRoutePaths.profile);
                           }
                         },
                       ),
