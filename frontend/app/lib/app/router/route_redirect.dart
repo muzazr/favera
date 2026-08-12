@@ -82,27 +82,28 @@ abstract final class RouteRedirect {
       return null;
     }
 
-    // 1. Onboarding Guard
-    if (!state.onboardingCompleted) {
-      return isOnboardingRoute ? null : AppRoutePaths.onboarding;
-    }
-
-    // 2. Auth Guard
+    // 1. Unauthenticated Users Guard
     if (!state.isAuthenticated) {
+      // First-time app open: show onboarding intro slider if not completed yet
+      if (!state.onboardingCompleted) {
+        return isOnboardingRoute ? null : AppRoutePaths.onboarding;
+      }
+      // Otherwise show login/auth screens
       return isAuthRoute ? null : AppRoutePaths.login;
     }
 
-    // 3. Profile Completion Guard
+    // 2. Authenticated Users Guard
+    // 2a. Profile Completion Guard
     if (!state.profileCompleted) {
       return isProfileSetupRoute ? null : AppRoutePaths.profileSetup;
     }
 
-    // 4. Family Pairing Guard
+    // 2b. Family Pairing Guard
     if (!state.familyPaired) {
       return isFamilyConnectRoute ? null : AppRoutePaths.familyConnect;
     }
 
-    // 5. If all onboarding/auth/profile/family requirements are met, prevent going back to auth screens
+    // 2c. If all requirements are met, prevent going back to auth/onboarding screens
     if (isOnboardingRoute ||
         isAuthRoute ||
         isProfileSetupRoute ||

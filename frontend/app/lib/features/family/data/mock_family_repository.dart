@@ -18,7 +18,33 @@ class MockFamilyRepository implements FamilyRepository {
   });
 
   @override
-  Future<FamilySpace> createSpace() async {
+  Future<FamilySpace?> getFamilySpace() async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    return mockStore.family;
+  }
+
+  @override
+  Future<List<FamilyInvitation>> getInvitations() async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    final family = mockStore.family;
+    if (family != null && family.status == FamilyStatus.pendingPairing && family.inviteCode != null) {
+      return [
+        FamilyInvitation(
+          id: 'inv-1',
+          inviteCode: family.inviteCode!,
+          inviterName: family.partnerName ?? 'Pasangan',
+          status: 'pending',
+          createdAt: family.createdAt,
+        ),
+      ];
+    }
+    return [];
+  }
+
+  @override
+  Future<FamilyInvitation> createInvitation({String? inviteeEmail}) async {
     errorPolicy.checkAndThrow();
     await latency.delay();
 
@@ -33,71 +59,107 @@ class MockFamilyRepository implements FamilyRepository {
     final space = FamilySpace(
       id: 'fam-${DateTime.now().millisecondsSinceEpoch}',
       inviteCode: code,
-      status: FamilyStatus.pending,
+      status: FamilyStatus.pendingPairing,
       primaryUserId: user.id,
       createdAt: DateTime.now(),
     );
 
     mockStore.family = space;
-    return space;
+    return FamilyInvitation(
+      id: 'inv-${DateTime.now().millisecondsSinceEpoch}',
+      inviteCode: code,
+      inviterUserId: user.id,
+      inviterName: user.name,
+      inviteeEmail: inviteeEmail,
+      status: 'pending',
+      createdAt: DateTime.now(),
+    );
   }
 
   @override
-  Future<FamilySpace?> getFamilySpace() async {
+  Future<FamilySpace> acceptInvitation({
+    required String inviteCode,
+    bool grantFinancialConsent = true,
+    bool grantCheckInConsent = true,
+  }) async {
     errorPolicy.checkAndThrow();
     await latency.delay();
-    return mockStore.family;
-  }
-
-  @override
-  Future<FamilySpace> joinSpace({required String inviteCode}) async {
-    errorPolicy.checkAndThrow();
-    await latency.delay();
-
-    final cleanCode = inviteCode.trim().toUpperCase();
-    if (cleanCode.isEmpty) {
-      throw const ValidationFailure(
-          message: 'Masukkan 6 karakter kode undangan pasangan anda');
-    }
 
     final user = mockStore.currentUser;
-    final currentFamily = mockStore.family;
-
-    if (currentFamily != null && currentFamily.inviteCode == cleanCode) {
-      // Joining own space or valid code
-      final joined = currentFamily.copyWith(
-        status: FamilyStatus.active,
-        partnerUserId: 'usr-budi-002',
-        partnerName: 'Budi',
-        pairedAt: DateTime.now(),
-      );
-      mockStore.family = joined;
-      return joined;
-    }
-
-    // Default mock join space
-    final newFamily = FamilySpace(
+    final activeSpace = FamilySpace(
       id: 'fam-88219',
-      inviteCode: cleanCode,
+      inviteCode: inviteCode,
       status: FamilyStatus.active,
       primaryUserId: user?.id ?? 'usr-joselin-001',
       partnerUserId: 'usr-budi-002',
       partnerName: 'Budi',
+      shareFinancialSummary: grantFinancialConsent,
+      shareCheckInSummary: grantCheckInConsent,
       createdAt: DateTime.now(),
       pairedAt: DateTime.now(),
     );
-
-    mockStore.family = newFamily;
-    return newFamily;
+    mockStore.family = activeSpace;
+    return activeSpace;
   }
 
   @override
-  Future<void> disconnectSpace({required String spaceId}) async {
+  Future<FamilyInvitation> rejectInvitation({required String inviteCode}) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    mockStore.family = null;
+    return FamilyInvitation(
+      id: 'inv-rejected',
+      inviteCode: inviteCode,
+      status: 'rejected',
+      createdAt: DateTime.now(),
+    );
+  }
+
+  @override
+  Future<void> deleteInvitation({required String invitationId}) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    mockStore.family = null;
+  }
+
+  @override
+  Future<FamilySpace> updateSettings(Map<String, dynamic> settings) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    final current = mockStore.family;
+    if (current == null) {
+      throw const NotFoundFailure(message: 'Ruang keluarga tidak ditemukan');
+    }
+    mockStore.family = current;
+    return current;
+  }
+
+  @override
+  Future<FamilySpace> updateConsents({
+    required bool shareFinancialSummary,
+    required bool shareCheckInSummary,
+  }) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    final current = mockStore.family;
+    if (current == null) {
+      throw const NotFoundFailure(message: 'Ruang keluarga tidak ditemukan');
+    }
+    final updated = current.copyWith(
+      shareFinancialSummary: shareFinancialSummary,
+      shareCheckInSummary: shareCheckInSummary,
+    );
+    mockStore.family = updated;
+    return updated;
+  }
+
+  @override
+  Future<void> disconnectFamily({String? password, String? reason}) async {
     errorPolicy.checkAndThrow();
     await latency.delay();
 
     final current = mockStore.family;
-    if (current != null && current.id == spaceId) {
+    if (current != null) {
       mockStore.family = FamilySpace(
         id: current.id,
         inviteCode: current.inviteCode,
@@ -108,41 +170,6 @@ class MockFamilyRepository implements FamilyRepository {
         createdAt: current.createdAt,
       );
     }
-  }
-
-  @override
-  Future<List<FamilySpace>> getInvitations() async {
-    errorPolicy.checkAndThrow();
-    await latency.delay();
-    final family = mockStore.family;
-    if (family != null && family.status == FamilyStatus.pending) {
-      return [family];
-    }
-    return [];
-  }
-
-  @override
-  Future<FamilySpace> acceptInvitation({required String invitationId}) async {
-    errorPolicy.checkAndThrow();
-    await latency.delay();
-    final current = mockStore.family;
-    if (current == null) {
-      throw const NotFoundFailure(message: 'Undangan tidak ditemukan');
-    }
-
-    final activeSpace = current.copyWith(
-      status: FamilyStatus.active,
-      pairedAt: DateTime.now(),
-    );
-    mockStore.family = activeSpace;
-    return activeSpace;
-  }
-
-  @override
-  Future<void> rejectInvitation({required String invitationId}) async {
-    errorPolicy.checkAndThrow();
-    await latency.delay();
-    mockStore.family = null;
   }
 
   @override

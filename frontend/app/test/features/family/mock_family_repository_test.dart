@@ -21,23 +21,23 @@ void main() {
       );
     });
 
-    test('createSpace generates a valid invite code and pending space',
+    test('createInvitation generates a valid invite code and pending invitation',
         () async {
-      final space = await repository.createSpace();
-      expect(space.inviteCode.startsWith('FAV-'), isTrue);
-      expect(space.status, equals(FamilyStatus.pending));
+      final invitation = await repository.createInvitation();
+      expect(invitation.inviteCode.startsWith('FAV-'), isTrue);
+      expect(invitation.status, equals('pending'));
     });
 
-    test('joinSpace with valid code transitions family to active paired status',
+    test('acceptInvitation with valid code transitions family to active paired status',
         () async {
-      final joined = await repository.joinSpace(inviteCode: 'FAV-88219');
+      final joined = await repository.acceptInvitation(inviteCode: 'FAV-88219');
       expect(joined.status, equals(FamilyStatus.active));
       expect(joined.partnerName, equals('Budi'));
     });
 
-    test('disconnectSpace marks family space as disconnected', () async {
-      await repository.joinSpace(inviteCode: 'FAV-88219');
-      await repository.disconnectSpace(spaceId: 'fam-88219');
+    test('disconnectFamily marks family space as disconnected', () async {
+      await repository.acceptInvitation(inviteCode: 'FAV-88219');
+      await repository.disconnectFamily(password: 'Password123!');
 
       final current = await repository.getFamilySpace();
       expect(current?.status, equals(FamilyStatus.disconnected));

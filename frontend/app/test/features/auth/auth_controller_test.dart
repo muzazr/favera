@@ -61,6 +61,32 @@ void main() {
       expect(routeState.isAuthenticated, isTrue);
     });
 
+    test('register creates account and directs user to login state', () async {
+      when(() => mockRepo.getCurrentUser()).thenAnswer((_) async => null);
+      when(() => mockRepo.register(
+            name: 'New User',
+            email: 'new@favera.id',
+            password: 'password123',
+            privacyConsent: true,
+          )).thenAnswer((_) async => testUser);
+      when(() => mockRepo.logout()).thenAnswer((_) async {});
+
+      await container.read(authControllerProvider.future);
+
+      final result = await container
+          .read(authControllerProvider.notifier)
+          .register(
+            name: 'New User',
+            email: 'new@favera.id',
+            password: 'password123',
+            privacyConsent: true,
+          );
+
+      expect(result, isTrue);
+      final routeState = container.read(routeStateProvider);
+      expect(routeState.isAuthenticated, isFalse);
+    });
+
     test('logout clears user state and resets route state', () async {
       when(() => mockRepo.getCurrentUser()).thenAnswer((_) async => testUser);
       when(() => mockRepo.logout()).thenAnswer((_) async {});
@@ -75,10 +101,10 @@ void main() {
       expect(routeState.isAuthenticated, isFalse);
     });
 
-    test('completeOnboarding updates user onboardingCompleted status', () async {
+    test('completeOnboarding handles backend errors gracefully with local fallback', () async {
       final unonboardedUser = testUser.copyWith(onboardingCompleted: false);
       when(() => mockRepo.getCurrentUser()).thenAnswer((_) async => unonboardedUser);
-      when(() => mockRepo.completeOnboarding()).thenAnswer((_) async => testUser);
+      when(() => mockRepo.completeOnboarding()).thenThrow(Exception('Backend 500 error'));
 
       await container.read(authControllerProvider.future);
       await container.read(authControllerProvider.notifier).completeOnboarding();

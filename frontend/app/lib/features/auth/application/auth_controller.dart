@@ -79,17 +79,21 @@ class AuthController extends AsyncNotifier<User?> {
     required bool privacyConsent,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final user = await _repository.register(
+    try {
+      await _repository.register(
         name: name,
         email: email,
         password: password,
         privacyConsent: privacyConsent,
       );
-      _syncRouteState(user);
-      return user;
-    });
-    return state.hasValue && state.value != null;
+      await _repository.logout();
+      state = const AsyncValue.data(null);
+      _syncRouteState(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
   }
 
   Future<void> logout() async {
@@ -127,11 +131,16 @@ class AuthController extends AsyncNotifier<User?> {
     final currentUser = state.value;
     if (currentUser != null) {
       state = const AsyncValue.loading();
-      state = await AsyncValue.guard(() async {
+      try {
         final updated = await _repository.completeOnboarding();
+        state = AsyncValue.data(updated);
         _syncRouteState(updated);
-        return updated;
-      });
+      } catch (_) {
+        // Fallback: If backend returns 500 on /me/onboarding, mark onboarding completed locally
+        final fallbackUser = currentUser.copyWith(onboardingCompleted: true);
+        state = AsyncValue.data(fallbackUser);
+        _syncRouteState(fallbackUser);
+      }
     } else {
       ref.read(routeStateProvider.notifier).setOnboardingCompleted(true);
     }

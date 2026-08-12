@@ -104,7 +104,18 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         );
 
     if (success && mounted) {
-      context.go(AppRoutePaths.profileSetup);
+      _loginEmailController.text = _regEmailController.text;
+      _loginPasswordController.clear();
+      setState(() {
+        _isRegister = false;
+        _errorMessage = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Akun berhasil dibuat! Silakan masuk dengan email dan kata sandi Anda.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
     } else if (mounted) {
       final state = ref.read(authControllerProvider);
       setState(() {
