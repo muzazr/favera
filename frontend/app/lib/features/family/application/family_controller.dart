@@ -82,6 +82,13 @@ class FamilyController extends AsyncNotifier<FamilySpace?> {
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
+      try {
+        final currentSpace = await _repository.getFamilySpace();
+        if (currentSpace != null && currentSpace.status == FamilyStatus.pendingPairing) {
+          await _repository.disconnectFamily();
+        }
+      } catch (_) {}
+
       final space = await _repository.acceptInvitation(
         inviteCode: inviteCode,
         grantFinancialConsent: grantFinancialConsent,
@@ -148,3 +155,34 @@ class FamilyController extends AsyncNotifier<FamilySpace?> {
 
 final familyControllerProvider =
     AsyncNotifierProvider<FamilyController, FamilySpace?>(FamilyController.new);
+
+final myInviteCodeProvider = FutureProvider.autoDispose<String>((ref) async {
+  final repo = ref.watch(familyRepositoryProvider);
+
+  final space = await repo.getFamilySpace();
+  if (space != null) {
+    if (space.inviteCode != null && space.inviteCode!.isNotEmpty) {
+      return space.inviteCode!;
+    }
+    if (space.status == FamilyStatus.active) {
+      return 'TERHUBUNG';
+    }
+  }
+
+  try {
+    final invitations = await repo.getInvitations();
+    final currentUser = ref.read(authControllerProvider).value;
+    if (currentUser != null) {
+      final myPending = invitations.where((inv) =>
+          inv.status == 'pending' && inv.inviterUserId == currentUser.id);
+      if (myPending.isNotEmpty) {
+        return myPending.first.inviteCode;
+      }
+    }
+
+    final newInv = await repo.createInvitation();
+    return newInv.inviteCode;
+  } catch (_) {
+    return space?.inviteCode ?? 'TERHUBUNG';
+  }
+});

@@ -4,7 +4,7 @@ import 'package:app/app/router/route_redirect.dart';
 
 void main() {
   group('RouteRedirect Guard Matrix Tests', () {
-    test('redirects to onboarding if onboardingCompleted is false', () {
+    test('redirects to onboarding if onboardingCompleted is false and not authenticated', () {
       const state = RouteState(
         onboardingCompleted: false,
         isAuthenticated: false,
@@ -52,7 +52,7 @@ void main() {
       expect(redirect, equals(AppRoutePaths.profileSetup));
     });
 
-    test('redirects to familyConnect if familyPaired is false', () {
+    test('allows home route when authenticated and profile completed even if familyPaired is false', () {
       const state = RouteState(
         onboardingCompleted: true,
         isAuthenticated: true,
@@ -65,7 +65,7 @@ void main() {
         state: state,
       );
 
-      expect(redirect, equals(AppRoutePaths.familyConnect));
+      expect(redirect, isNull);
     });
 
     test('allows target route when all conditions are satisfied', () {

@@ -56,7 +56,7 @@ class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
 
     ConsentDialog.show(
       context,
-      partnerName: 'Siti Nurbaya',
+      partnerName: 'Pasangan',
       onConsentApproved: () async {
         final success =
             await ref.read(familyControllerProvider.notifier).joinSpace(code);
@@ -83,7 +83,8 @@ class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
       return const FamilySuccessPage();
     }
 
-    final myInviteCode = familySpace?.inviteCode ?? 'R-8392-AX';
+    final inviteCodeAsync = ref.watch(myInviteCodeProvider);
+    final myInviteCode = inviteCodeAsync.value ?? 'Memuat...';
 
     return AppGradientBackground(
       child: Scaffold(
@@ -237,9 +238,8 @@ class _FamilyConnectPageState extends ConsumerState<FamilyConnectPage> {
                               ),
                             ),
 
-                            // White Salin Button
                             InkWell(
-                              onTap: () => _copyToClipboard(myInviteCode),
+                              onTap: myInviteCode == 'Memuat...' ? null : () => _copyToClipboard(myInviteCode),
                               borderRadius: BorderRadius.circular(20),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(

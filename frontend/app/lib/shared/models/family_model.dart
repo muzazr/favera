@@ -43,13 +43,31 @@ class FamilySpace {
       parsedStatus = FamilyStatus.unpaired;
     }
 
+    final membersJson = json['members'] as List<dynamic>?;
+    final parsedMembers = membersJson != null
+        ? membersJson.map((m) => FamilyMember.fromJson(m as Map<String, dynamic>)).toList()
+        : const <FamilyMember>[];
+
+    final primaryId = (json['primary_user_id'] ?? json['user_id_1'] ?? (parsedMembers.isNotEmpty ? parsedMembers.first.userId : '')) as String;
+
+    String? partnerId = (json['partner_user_id'] ?? json['user_id_2']) as String?;
+    String? partnerNm = (json['partner_name'] ?? json['partnerName']) as String?;
+
+    if (parsedMembers.isNotEmpty) {
+      final others = parsedMembers.where((m) => m.userId != primaryId);
+      if (others.isNotEmpty) {
+        partnerId ??= others.first.userId;
+        partnerNm ??= others.first.displayName;
+      }
+    }
+
     return FamilySpace(
       id: (json['id'] ?? json['family_id'] ?? '') as String,
       inviteCode: (json['invite_code'] ?? json['inviteCode']) as String?,
       status: parsedStatus,
-      primaryUserId: (json['primary_user_id'] ?? json['user_id_1'] ?? '') as String,
-      partnerUserId: (json['partner_user_id'] ?? json['user_id_2']) as String?,
-      partnerName: (json['partner_name'] ?? json['partnerName']) as String?,
+      primaryUserId: primaryId,
+      partnerUserId: partnerId,
+      partnerName: partnerNm,
       shareFinancialSummary: (json['share_financial_summary'] as bool?) ?? true,
       shareCheckInSummary: (json['share_check_in_summary'] as bool?) ?? true,
       createdAt: json['created_at'] != null
@@ -130,7 +148,7 @@ class FamilyInvitation {
     return FamilyInvitation(
       id: json['id'] as String,
       inviteCode: (json['invite_code'] ?? json['inviteCode']) as String,
-      inviterUserId: (json['inviter_user_id'] ?? json['primary_user_id']) as String?,
+      inviterUserId: (json['inviter_user_id'] ?? json['primary_user_id'] ?? json['sender_user_id']) as String?,
       inviterName: (json['inviter_name'] ?? json['partner_name']) as String?,
       inviteeEmail: json['invitee_email'] as String?,
       status: (json['status'] as String?) ?? 'pending',
@@ -154,5 +172,25 @@ class FamilyInvitation {
       'created_at': createdAt.toUtc().toIso8601String(),
       'expires_at': expiresAt?.toUtc().toIso8601String(),
     };
+  }
+}
+
+class FamilyMember {
+  final String userId;
+  final String displayName;
+  final String? avatarUrl;
+
+  const FamilyMember({
+    required this.userId,
+    required this.displayName,
+    this.avatarUrl,
+  });
+
+  factory FamilyMember.fromJson(Map<String, dynamic> json) {
+    return FamilyMember(
+      userId: (json['user_id'] ?? json['userId'] ?? '') as String,
+      displayName: (json['display_name'] ?? json['displayName'] ?? '') as String,
+      avatarUrl: json['avatar_url'] as String?,
+    );
   }
 }

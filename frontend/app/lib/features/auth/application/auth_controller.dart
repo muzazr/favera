@@ -54,7 +54,7 @@ class AuthController extends AsyncNotifier<User?> {
     final routeNotifier = ref.read(routeStateProvider.notifier);
     if (user != null) {
       routeNotifier.setAuthenticated(true);
-      routeNotifier.setOnboardingCompleted(user.onboardingCompleted);
+      routeNotifier.setOnboardingCompleted(true);
       routeNotifier.setProfileCompleted(user.name.isNotEmpty);
     } else {
       routeNotifier.setAuthenticated(false);

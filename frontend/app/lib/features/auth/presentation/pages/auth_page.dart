@@ -79,7 +79,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         );
 
     if (success && mounted) {
-      context.go(AppRoutePaths.profileSetup);
+      final user = ref.read(authControllerProvider).value;
+      if (user != null && user.name.isNotEmpty) {
+        context.go(AppRoutePaths.home);
+      } else {
+        context.go(AppRoutePaths.profileSetup);
+      }
     } else if (mounted) {
       final state = ref.read(authControllerProvider);
       setState(() {
