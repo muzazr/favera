@@ -43,8 +43,8 @@ class AppConfig {
       DataDomain.commitments: DataSourceMode.remote,
       DataDomain.professionals: DataSourceMode.remote,
       DataDomain.consultations: DataSourceMode.remote,
-      DataDomain.simulations: DataSourceMode.mock,
-      DataDomain.notifications: DataSourceMode.mock,
+    // NOTE: DataDomain.simulations is NOT backend-integrated (route removed, Part 13).
+      // NOTE: DataDomain.notifications is NOT backend-integrated (route removed, Part 13).
     };
 
     return AppConfig(

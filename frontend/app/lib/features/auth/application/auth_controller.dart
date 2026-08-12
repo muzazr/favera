@@ -6,6 +6,12 @@ import '../../../core/config/data_source_mode.dart';
 import '../../../core/storage/auth_token_storage.dart';
 import '../../../mock/mock_providers.dart';
 import '../../../shared/models/user_model.dart';
+import '../../chat/application/chat_controller.dart';
+import '../../family/application/family_controller.dart';
+import '../../finance/application/transaction_controller.dart';
+import '../../goals/application/goal_controller.dart';
+import '../../home/application/dashboard_controller.dart';
+import '../../recovery/application/recovery_controller.dart';
 import '../data/auth_repository.dart';
 import '../data/mock_auth_repository.dart';
 import '../data/remote_auth_repository.dart';
@@ -99,6 +105,16 @@ class AuthController extends AsyncNotifier<User?> {
   Future<void> logout() async {
     state = const AsyncValue.loading();
     await _repository.logout();
+    // Invalidate all cached user-scoped data to prevent stale state on next login
+    ref.invalidate(dashboardControllerProvider);
+    ref.invalidate(familyControllerProvider);
+    ref.invalidate(familyInvitationsProvider);
+    ref.invalidate(weeklyCheckInControllerProvider);
+    ref.invalidate(familyAssessmentControllerProvider);
+    ref.invalidate(transactionListControllerProvider);
+    ref.invalidate(goalListControllerProvider);
+    ref.invalidate(chatSessionsProvider);
+    ref.invalidate(recoverySessionListProvider);
     state = const AsyncValue.data(null);
     _syncRouteState(null);
   }
