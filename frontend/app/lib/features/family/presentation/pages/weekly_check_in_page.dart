@@ -399,6 +399,13 @@ class _WeeklyCheckInPageState extends ConsumerState<WeeklyCheckInPage> {
                           ),
                         );
                         router.go(AppRoutePaths.familyCondition);
+                      } catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('Gagal menyimpan check-in: $e'),
+                            backgroundColor: const Color(0xFFEF4444),
+                          ),
+                        );
                       } finally {
                         if (mounted) {
                           setState(() => _isSubmitting = false);

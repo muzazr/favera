@@ -13,7 +13,7 @@ final statementRepositoryProvider = Provider<StatementRepository>((ref) {
   final mode = config.dataSourceFor(DataDomain.statementImport);
   if (mode == DataSourceMode.remote) {
     final client = ref.watch(apiClientProvider);
-    return RemoteStatementRepository(dio: client.dio);
+    return RemoteStatementRepository(apiClient: client);
   }
   final store = ref.watch(mockStoreProvider);
   return MockStatementRepository(store: store);

@@ -3,10 +3,10 @@ import '../../../../shared/models/transaction_model.dart';
 abstract interface class TransactionRepository {
   Future<List<Transaction>> getTransactions({
     String? category,
-    TransactionType? type,
+    TransactionDirection? direction,
+    String? attentionLevel,
     String? cursor,
     int limit = 20,
-    bool? isAnomaly,
   });
 
   Future<Transaction?> getTransactionById(String id);
@@ -20,13 +20,16 @@ abstract interface class TransactionRepository {
 
   Future<bool> deleteTransaction(String id);
 
+  /// [action]: 'confirm' | 'clarify'
   Future<Transaction> confirmTransactionAnomaly(
     String id, {
-    required String note,
+    required String action,
+    String? note,
   });
 
+  /// [label]: 'genuine' | 'needs_review' | 'false_positive'
   Future<Transaction> sendTransactionFeedback(
     String id, {
-    required String feedbackText,
+    required String label,
   });
 }

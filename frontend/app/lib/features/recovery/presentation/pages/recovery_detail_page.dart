@@ -947,7 +947,31 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  if (!cmt.approvedByPartner || cmt.status == CommitmentStatus.pendingPartnerApproval) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
+                        label: const Text('Setujui Komitmen Pasangan'),
+                        onPressed: () {
+                          ref
+                              .read(recoveryControllerProvider.notifier)
+                              .approveCommitment(
+                                commitmentId: cmt.id,
+                                action: 'approve',
+                              );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          shape: const StadiumBorder(),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   Row(
                     children: [
                       Expanded(

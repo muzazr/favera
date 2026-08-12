@@ -31,7 +31,10 @@ abstract class RecoveryRepository {
     required String description,
     required DateTime targetDate,
   });
-  Future<Commitment> approveCommitment(String commitmentId);
+  Future<Commitment> approveCommitment({
+    required String commitmentId,
+    String action = 'approve',
+  });
   Future<Commitment> updateCommitmentProgress({
     required String commitmentId,
     required int progress,

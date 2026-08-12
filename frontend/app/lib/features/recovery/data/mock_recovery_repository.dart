@@ -169,7 +169,10 @@ class MockRecoveryRepository implements RecoveryRepository {
   }
 
   @override
-  Future<Commitment> approveCommitment(String commitmentId) async {
+  Future<Commitment> approveCommitment({
+    required String commitmentId,
+    String action = 'approve',
+  }) async {
     errorPolicy.checkAndThrow();
     await latency.delay();
     final list = mockStore.getCommitments();
@@ -178,9 +181,10 @@ class MockRecoveryRepository implements RecoveryRepository {
       orElse: () =>
           throw const NotFoundFailure(message: 'Komitmen tidak ditemukan'),
     );
+    final isApproved = action == 'approve';
     final updated = cmt.copyWith(
-      approvedByPartner: true,
-      status: CommitmentStatus.active,
+      approvedByPartner: isApproved,
+      status: isApproved ? CommitmentStatus.active : CommitmentStatus.cancelled,
     );
     return mockStore.updateCommitment(updated);
   }

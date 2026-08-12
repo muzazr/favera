@@ -111,6 +111,18 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    if (newPassword.trim().length < 6) {
+      throw const ValidationFailure(message: 'Password baru minimal 6 karakter');
+    }
+  }
+
+  @override
   Future<User?> getCurrentUser() async {
     errorPolicy.checkAndThrow();
     final token = await tokenStorage.getAccessToken();
@@ -139,10 +151,18 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> completeOnboarding() async {
-    final current = mockStore.currentUser;
-    if (current != null) {
-      mockStore.currentUser = current.copyWith(onboardingCompleted: true);
-    }
+  Future<User> completeOnboarding() async {
+    final current = mockStore.currentUser ??
+        User(
+          id: 'usr-guest-${DateTime.now().millisecondsSinceEpoch}',
+          email: 'guest@favera.id',
+          name: 'Pengguna',
+          onboardingCompleted: true,
+          createdAt: DateTime.now(),
+        );
+
+    final updated = current.copyWith(onboardingCompleted: true);
+    mockStore.currentUser = updated;
+    return updated;
   }
 }

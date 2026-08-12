@@ -70,14 +70,17 @@ class FinancialGoal {
 
   factory FinancialGoal.fromJson(Map<String, dynamic> json) {
     return FinancialGoal(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      targetAmount: (json['target_amount'] as num).toInt(),
-      currentAmount: (json['current_amount'] as num).toInt(),
-      deadline: json['deadline'] as String,
+      id: json['id'] as String? ??
+          'goal-${DateTime.now().millisecondsSinceEpoch}',
+      name: json['name'] as String? ?? 'Target Keuangan',
+      targetAmount: (json['target_amount'] as num?)?.toInt() ?? 0,
+      currentAmount: (json['current_amount'] as num?)?.toInt() ?? 0,
+      deadline: json['deadline'] as String? ?? '',
       status: _parseStatus(json['status'] as String?),
       approvedByPartner: json['approved_by_partner'] as bool? ?? true,
-      themeIcon: json['theme_icon'] as String? ?? 'house',
+      themeIcon: (json['theme_icon'] as String?) ??
+          (json['theme'] as String?) ??
+          'house',
       contributionScheme:
           json['contribution_scheme'] as String? ?? 'Dari Saldo Bersama',
       priority: json['priority'] as String? ?? 'Penting',
@@ -85,7 +88,9 @@ class FinancialGoal {
               ?.map((c) => GoalContribution.fromJson(c as Map<String, dynamic>))
               .toList() ??
           const [],
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: json['created_at'] != null
+          ? (DateTime.tryParse(json['created_at'] as String) ?? DateTime.now())
+          : DateTime.now(),
     );
   }
 

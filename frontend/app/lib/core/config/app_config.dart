@@ -19,7 +19,7 @@ class AppConfig {
     const rawMode = String.fromEnvironment('APP_MODE', defaultValue: 'mock');
     const rawApiUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'http://localhost:3000/api/v1',
+      defaultValue: 'https://favera-backend.vercel.app',
     );
     const rawEnv = String.fromEnvironment('APP_ENV', defaultValue: 'dev');
 
@@ -29,7 +29,6 @@ class AppConfig {
       _ => AppEnvironment.dev,
     };
 
-    // Default domain overrides for hybrid mode (as specified in FRONTEND_ARCHITECTURE.md)
     final defaultHybridOverrides = <DataDomain, DataSourceMode>{
       DataDomain.auth: DataSourceMode.remote,
       DataDomain.family: DataSourceMode.remote,
@@ -39,13 +38,13 @@ class AppConfig {
       DataDomain.checkIn: DataSourceMode.remote,
       DataDomain.assessment: DataSourceMode.remote,
       DataDomain.chat: DataSourceMode.remote,
-      DataDomain.goals: DataSourceMode.mock,
-      DataDomain.recovery: DataSourceMode.mock,
-      DataDomain.commitments: DataSourceMode.mock,
-      DataDomain.professionals: DataSourceMode.mock,
-      DataDomain.consultations: DataSourceMode.mock,
-      DataDomain.simulations: DataSourceMode.mock,
-      DataDomain.notifications: DataSourceMode.mock,
+      DataDomain.goals: DataSourceMode.remote,
+      DataDomain.recovery: DataSourceMode.remote,
+      DataDomain.commitments: DataSourceMode.remote,
+      DataDomain.professionals: DataSourceMode.remote,
+      DataDomain.consultations: DataSourceMode.remote,
+    // NOTE: DataDomain.simulations is NOT backend-integrated (route removed, Part 13).
+      // NOTE: DataDomain.notifications is NOT backend-integrated (route removed, Part 13).
     };
 
     return AppConfig(

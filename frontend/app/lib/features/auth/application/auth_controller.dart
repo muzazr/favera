@@ -6,6 +6,12 @@ import '../../../core/config/data_source_mode.dart';
 import '../../../core/storage/auth_token_storage.dart';
 import '../../../mock/mock_providers.dart';
 import '../../../shared/models/user_model.dart';
+import '../../chat/application/chat_controller.dart';
+import '../../family/application/family_controller.dart';
+import '../../finance/application/transaction_controller.dart';
+import '../../goals/application/goal_controller.dart';
+import '../../home/application/dashboard_controller.dart';
+import '../../recovery/application/recovery_controller.dart';
 import '../data/auth_repository.dart';
 import '../data/mock_auth_repository.dart';
 import '../data/remote_auth_repository.dart';
@@ -54,10 +60,11 @@ class AuthController extends AsyncNotifier<User?> {
     final routeNotifier = ref.read(routeStateProvider.notifier);
     if (user != null) {
       routeNotifier.setAuthenticated(true);
-      routeNotifier.setOnboardingCompleted(user.onboardingCompleted);
+      routeNotifier.setOnboardingCompleted(true);
       routeNotifier.setProfileCompleted(user.name.isNotEmpty);
     } else {
       routeNotifier.setAuthenticated(false);
+      routeNotifier.setProfileCompleted(false);
     }
   }
 
@@ -78,28 +85,49 @@ class AuthController extends AsyncNotifier<User?> {
     required bool privacyConsent,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final user = await _repository.register(
+    try {
+      await _repository.register(
         name: name,
         email: email,
         password: password,
         privacyConsent: privacyConsent,
       );
-      _syncRouteState(user);
-      return user;
-    });
-    return state.hasValue && state.value != null;
+      await _repository.logout();
+      state = const AsyncValue.data(null);
+      _syncRouteState(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return false;
+    }
   }
 
   Future<void> logout() async {
     state = const AsyncValue.loading();
     await _repository.logout();
+    // Invalidate all cached user-scoped data to prevent stale state on next login
+    ref.invalidate(dashboardControllerProvider);
+    ref.invalidate(familyControllerProvider);
+    ref.invalidate(familyInvitationsProvider);
+    ref.invalidate(weeklyCheckInControllerProvider);
+    ref.invalidate(familyAssessmentControllerProvider);
+    ref.invalidate(transactionListControllerProvider);
+    ref.invalidate(goalListControllerProvider);
+    ref.invalidate(chatSessionsProvider);
+    ref.invalidate(recoverySessionListProvider);
     state = const AsyncValue.data(null);
     _syncRouteState(null);
   }
 
   Future<void> forgotPassword(String email) async {
     await _repository.forgotPassword(email: email);
+  }
+
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    await _repository.resetPassword(token: token, newPassword: newPassword);
   }
 
   Future<bool> updateProfile({String? name, String? avatarUrl}) async {
@@ -116,8 +144,22 @@ class AuthController extends AsyncNotifier<User?> {
   }
 
   Future<void> completeOnboarding() async {
-    await _repository.completeOnboarding();
-    ref.read(routeStateProvider.notifier).setOnboardingCompleted(true);
+    final currentUser = state.value;
+    if (currentUser != null) {
+      state = const AsyncValue.loading();
+      try {
+        final updated = await _repository.completeOnboarding();
+        state = AsyncValue.data(updated);
+        _syncRouteState(updated);
+      } catch (_) {
+        // Fallback: If backend returns 500 on /me/onboarding, mark onboarding completed locally
+        final fallbackUser = currentUser.copyWith(onboardingCompleted: true);
+        state = AsyncValue.data(fallbackUser);
+        _syncRouteState(fallbackUser);
+      }
+    } else {
+      ref.read(routeStateProvider.notifier).setOnboardingCompleted(true);
+    }
   }
 }
 

@@ -30,7 +30,7 @@ void main() {
     test('createTransaction adds new transaction to store', () async {
       final newTx = Transaction(
         id: 'tx-test-100',
-        type: TransactionType.expense,
+        direction: TransactionDirection.expense,
         amount: 85000,
         category: 'Makanan',
         description: 'Makan Siang',
@@ -62,6 +62,7 @@ void main() {
 
       final updated = await repository.confirmTransactionAnomaly(
         targetId,
+        action: 'confirm',
         note: 'Dikonfirmasi aman oleh Joselin',
       );
 

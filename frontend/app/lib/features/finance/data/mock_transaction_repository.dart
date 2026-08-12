@@ -10,10 +10,10 @@ class MockTransactionRepository implements TransactionRepository {
   @override
   Future<List<Transaction>> getTransactions({
     String? category,
-    TransactionType? type,
+    TransactionDirection? direction,
+    String? attentionLevel,
     String? cursor,
     int limit = 20,
-    bool? isAnomaly,
   }) async {
     await Future.delayed(const Duration(milliseconds: 300));
     var list = _store.getTransactions();
@@ -22,12 +22,13 @@ class MockTransactionRepository implements TransactionRepository {
       list = list.where((tx) => tx.category == category).toList();
     }
 
-    if (type != null) {
-      list = list.where((tx) => tx.type == type).toList();
+    if (direction != null && direction != TransactionDirection.unknown) {
+      list = list.where((tx) => tx.direction == direction).toList();
     }
 
-    if (isAnomaly != null) {
-      list = list.where((tx) => tx.isAnomaly == isAnomaly).toList();
+    if (attentionLevel != null && attentionLevel.isNotEmpty) {
+      final level = AttentionLevel.fromApi(attentionLevel);
+      list = list.where((tx) => tx.attentionLevel == level).toList();
     }
 
     // Sort by date descending
@@ -55,9 +56,7 @@ class MockTransactionRepository implements TransactionRepository {
   }
 
   @override
-  Future<Transaction> createTransaction(
-    Transaction transaction,
-  ) async {
+  Future<Transaction> createTransaction(Transaction transaction) async {
     await Future.delayed(const Duration(milliseconds: 300));
     _store.addTransaction(transaction);
     return transaction;
@@ -70,17 +69,13 @@ class MockTransactionRepository implements TransactionRepository {
   ) async {
     await Future.delayed(const Duration(milliseconds: 300));
     final existing = await getTransactionById(id);
-    if (existing == null) {
-      throw Exception('Transaksi tidak ditemukan');
-    }
+    if (existing == null) throw Exception('Transaksi tidak ditemukan');
 
     final updated = existing.copyWith(
       amount: updates['amount'] as int? ?? existing.amount,
       category: updates['category'] as String? ?? existing.category,
       description: updates['description'] as String? ?? existing.description,
-      type: updates['type'] as TransactionType? ?? existing.type,
     );
-
     _store.addTransaction(updated);
     return updated;
   }
@@ -94,17 +89,17 @@ class MockTransactionRepository implements TransactionRepository {
   @override
   Future<Transaction> confirmTransactionAnomaly(
     String id, {
-    required String note,
+    required String action,
+    String? note,
   }) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final existing = await getTransactionById(id);
-    if (existing == null) {
-      throw Exception('Transaksi tidak ditemukan');
-    }
+    if (existing == null) throw Exception('Transaksi tidak ditemukan');
 
     final updated = existing.copyWith(
       confirmedByPartner: true,
-      anomalyReason: note.isNotEmpty ? note : 'Telah dikonfirmasi keluarga',
+      anomalyReason:
+          (note != null && note.isNotEmpty) ? note : 'Telah dikonfirmasi',
     );
     _store.addTransaction(updated);
     return updated;
@@ -113,13 +108,11 @@ class MockTransactionRepository implements TransactionRepository {
   @override
   Future<Transaction> sendTransactionFeedback(
     String id, {
-    required String feedbackText,
+    required String label,
   }) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final existing = await getTransactionById(id);
-    if (existing == null) {
-      throw Exception('Transaksi tidak ditemukan');
-    }
+    if (existing == null) throw Exception('Transaksi tidak ditemukan');
     return existing;
   }
 }

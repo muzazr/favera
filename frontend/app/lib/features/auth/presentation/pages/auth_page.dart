@@ -7,6 +7,7 @@ import '../../../../app/theme/app_radius.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/constants/app_assets.dart';
+import '../../../../core/errors/app_failure.dart';
 import '../../../../core/widgets/app_gradient_background.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../application/auth_controller.dart';
@@ -55,6 +56,18 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     super.dispose();
   }
 
+  String _parseError(dynamic error, String fallback) {
+    if (error == null) return fallback;
+    if (error is AppFailure) {
+      if (error is NetworkFailure) return error.message ?? 'Koneksi terganggu. Periksa jaringan Anda.';
+      if (error is AuthFailure) return error.message ?? 'Password salah atau kombinasi tidak ditemukan.';
+      if (error is UnauthorizedFailure) return error.message ?? 'Sesi telah berakhir, silakan masuk kembali.';
+      if (error is ValidationFailure) return error.message ?? 'Data yang dimasukkan tidak valid.';
+      if (error is ServerFailure) return error.message ?? 'Terjadi kesalahan pada server.';
+    }
+    return error.toString().replaceAll('Exception: ', '');
+  }
+
   Future<void> _handleLogin() async {
     setState(() {
       _errorMessage = null;
@@ -66,12 +79,19 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         );
 
     if (success && mounted) {
-      context.go(AppRoutePaths.profileSetup);
+      final user = ref.read(authControllerProvider).value;
+      if (user != null && user.name.isNotEmpty) {
+        context.go(AppRoutePaths.home);
+      } else {
+        context.go(AppRoutePaths.profileSetup);
+      }
     } else if (mounted) {
       final state = ref.read(authControllerProvider);
       setState(() {
-        _errorMessage = state.error?.toString().replaceAll('Exception: ', '') ??
-            'Password salah atau kombinasi tidak ditemukan';
+        _errorMessage = _parseError(
+          state.error,
+          'Password salah atau kombinasi tidak ditemukan',
+        );
       });
     }
   }
@@ -89,12 +109,25 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         );
 
     if (success && mounted) {
-      context.go(AppRoutePaths.profileSetup);
+      _loginEmailController.text = _regEmailController.text;
+      _loginPasswordController.clear();
+      setState(() {
+        _isRegister = false;
+        _errorMessage = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Akun berhasil dibuat! Silakan masuk dengan email dan kata sandi Anda.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
     } else if (mounted) {
       final state = ref.read(authControllerProvider);
       setState(() {
-        _errorMessage = state.error?.toString().replaceAll('Exception: ', '') ??
-            'Gagal mendaftarkan akun. Periksa data anda.';
+        _errorMessage = _parseError(
+          state.error,
+          'Gagal mendaftarkan akun. Periksa data anda.',
+        );
       });
     }
   }

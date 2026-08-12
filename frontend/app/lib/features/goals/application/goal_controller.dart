@@ -60,6 +60,25 @@ class GoalListController extends AsyncNotifier<List<FinancialGoal>> {
       return false;
     }
   }
+
+  /// Approve a goal on behalf of partner. Sends [action] = 'approve' | 'reject'.
+  Future<FinancialGoal?> approveGoal(String id, {String action = 'approve'}) async {
+    final repo = ref.read(goalRepositoryProvider);
+    try {
+      final updated = await repo.approveGoal(id, action: action);
+      ref.invalidateSelf();
+      ref.invalidate(goalDetailControllerProvider(id));
+      ref.invalidate(dashboardControllerProvider);
+      return updated;
+    } catch (e, st) {
+      // Keep current state, surface error to caller
+      state = AsyncValue.error(e, st);
+      return null;
+    }
+  }
+
+  /// Reject a goal on behalf of partner.
+  Future<FinancialGoal?> rejectGoal(String id) => approveGoal(id, action: 'reject');
 }
 
 final goalDetailControllerProvider = FutureProvider.family
@@ -69,30 +88,32 @@ final goalDetailControllerProvider = FutureProvider.family
 });
 
 final addContributionControllerProvider = StateNotifierProvider.autoDispose<
-    AddContributionController, AsyncValue<FinancialGoal?>>((ref) {
-  return AddContributionController(ref);
-});
+    AddContributionController, AsyncValue<GoalContribution?>>(
+  (ref) => AddContributionController(ref),
+);
 
 class AddContributionController
-    extends StateNotifier<AsyncValue<FinancialGoal?>> {
+    extends StateNotifier<AsyncValue<GoalContribution?>> {
   final Ref ref;
 
   AddContributionController(this.ref) : super(const AsyncValue.data(null));
 
   Future<bool> addContribution(
     String goalId, {
-    required String sourceName,
     required int amount,
+    String? transactionId,
+    String? note,
   }) async {
     state = const AsyncValue.loading();
     try {
       final repo = ref.read(goalRepositoryProvider);
-      final updated = await repo.addContribution(
+      final contribution = await repo.addContribution(
         goalId,
-        sourceName: sourceName,
         amount: amount,
+        transactionId: transactionId,
+        note: note,
       );
-      state = AsyncValue.data(updated);
+      state = AsyncValue.data(contribution);
       ref.invalidate(goalListControllerProvider);
       ref.invalidate(goalDetailControllerProvider(goalId));
       ref.invalidate(dashboardControllerProvider);

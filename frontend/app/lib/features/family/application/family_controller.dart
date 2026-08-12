@@ -8,7 +8,6 @@ import '../../auth/application/auth_controller.dart';
 import '../data/family_repository.dart';
 import '../data/mock_family_repository.dart';
 import '../data/remote_family_repository.dart';
-
 import '../../../shared/models/check_in_model.dart';
 
 final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
@@ -27,6 +26,12 @@ final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
   }
 });
 
+final familyInvitationsProvider =
+    FutureProvider.autoDispose<List<FamilyInvitation>>((ref) async {
+  final repo = ref.watch(familyRepositoryProvider);
+  return repo.getInvitations();
+});
+
 final weeklyCheckInControllerProvider =
     FutureProvider.autoDispose<WeeklyCheckIn?>((ref) async {
   final repo = ref.watch(familyRepositoryProvider);
@@ -39,13 +44,19 @@ final familyAssessmentControllerProvider =
   return repo.getCurrentFamilyAssessment();
 });
 
+final familyAssessmentNarrativeProvider = FutureProvider.family
+    .autoDispose<FamilyAssessmentNarrative?, String>((ref, assessmentId) async {
+  final repo = ref.watch(familyRepositoryProvider);
+  return repo.getFamilyAssessmentNarrative(assessmentId);
+});
+
 class FamilyController extends AsyncNotifier<FamilySpace?> {
-  late final FamilyRepository _repository;
+  FamilyRepository get _repository => ref.read(familyRepositoryProvider);
 
   @override
   Future<FamilySpace?> build() async {
-    _repository = ref.watch(familyRepositoryProvider);
-    final space = await _repository.getFamilySpace();
+    final repo = ref.watch(familyRepositoryProvider);
+    final space = await repo.getFamilySpace();
     _syncRouteState(space);
     return space;
   }
@@ -56,32 +67,71 @@ class FamilyController extends AsyncNotifier<FamilySpace?> {
     routeNotifier.setFamilyPaired(isPaired);
   }
 
-  Future<FamilySpace?> createSpace() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final space = await _repository.createSpace();
+  Future<FamilyInvitation?> createInvitation({String? inviteeEmail}) async {
+    try {
+      final invitation = await _repository.createInvitation(inviteeEmail: inviteeEmail);
+      final space = await _repository.getFamilySpace();
+      state = AsyncValue.data(space);
       _syncRouteState(space);
-      return space;
-    });
-    return state.value;
+      ref.invalidate(familyInvitationsProvider);
+      return invitation;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      return null;
+    }
   }
 
-  Future<bool> joinSpace(String inviteCode) async {
+  Future<bool> acceptInvitation(
+    String inviteCode, {
+    bool grantFinancialConsent = true,
+    bool grantCheckInConsent = true,
+  }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final space = await _repository.joinSpace(inviteCode: inviteCode);
+      try {
+        final currentSpace = await _repository.getFamilySpace();
+        if (currentSpace != null && currentSpace.status == FamilyStatus.pendingPairing) {
+          await _repository.disconnectFamily();
+        }
+      } catch (_) {}
+
+      final space = await _repository.acceptInvitation(
+        inviteCode: inviteCode,
+        grantFinancialConsent: grantFinancialConsent,
+        grantCheckInConsent: grantCheckInConsent,
+      );
       _syncRouteState(space);
+      ref.invalidate(familyInvitationsProvider);
       return space;
     });
     return state.hasValue && state.value?.status == FamilyStatus.active;
   }
 
-  Future<void> disconnectSpace(String spaceId) async {
+  Future<bool> joinSpace(String inviteCode) async {
+    return acceptInvitation(inviteCode);
+  }
+
+  Future<bool> rejectInvitation(String inviteCode) async {
+    try {
+      await _repository.rejectInvitation(inviteCode: inviteCode);
+      ref.invalidate(familyInvitationsProvider);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> disconnectSpace(String spaceId, {String? password, String? reason}) async {
     state = const AsyncValue.loading();
-    await _repository.disconnectSpace(spaceId: spaceId);
-    final space = await _repository.getFamilySpace();
-    state = AsyncValue.data(space);
-    _syncRouteState(space);
+    try {
+      await _repository.disconnectFamily(password: password, reason: reason);
+      state = const AsyncValue.data(null);
+      _syncRouteState(null);
+      ref.invalidate(familyInvitationsProvider);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
   }
 
   Future<WeeklyCheckIn> submitCheckIn({
@@ -111,3 +161,34 @@ class FamilyController extends AsyncNotifier<FamilySpace?> {
 
 final familyControllerProvider =
     AsyncNotifierProvider<FamilyController, FamilySpace?>(FamilyController.new);
+
+final myInviteCodeProvider = FutureProvider.autoDispose<String>((ref) async {
+  final repo = ref.watch(familyRepositoryProvider);
+
+  final space = await repo.getFamilySpace();
+  if (space != null) {
+    if (space.inviteCode != null && space.inviteCode!.isNotEmpty) {
+      return space.inviteCode!;
+    }
+    if (space.status == FamilyStatus.active) {
+      return 'TERHUBUNG';
+    }
+  }
+
+  try {
+    final invitations = await repo.getInvitations();
+    final currentUser = ref.read(authControllerProvider).value;
+    if (currentUser != null) {
+      final myPending = invitations.where((inv) =>
+          inv.status == 'pending' && inv.inviterUserId == currentUser.id);
+      if (myPending.isNotEmpty) {
+        return myPending.first.inviteCode;
+      }
+    }
+
+    final newInv = await repo.createInvitation();
+    return newInv.inviteCode;
+  } catch (_) {
+    return space?.inviteCode ?? 'TERHUBUNG';
+  }
+});

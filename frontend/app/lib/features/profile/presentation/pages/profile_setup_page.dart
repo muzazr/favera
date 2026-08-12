@@ -50,7 +50,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
         .updateProfile(name: name, avatarUrl: _selectedAvatar);
 
     if (success && mounted) {
-      context.go(AppRoutePaths.familyConnect);
+      context.go(AppRoutePaths.home);
     }
   }
 

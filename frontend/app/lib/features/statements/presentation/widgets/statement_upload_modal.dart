@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,25 +59,27 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
     setState(() => _isUploading = true);
 
     final fileName = _pickedFile?.name ?? 'eStatement_GoPay_Juni2026.pdf';
-    final fileSizeBytes = _pickedFile?.size ?? 2450000;
+    // Read file bytes for real upload; fall back to empty bytes for demo.
+    final rawBytes = _pickedFile?.bytes;
+    final fileBytes = rawBytes != null
+        ? Uint8List.fromList(rawBytes)
+        : Uint8List(0);
 
     try {
       final created = await ref
           .read(statementUploadControllerProvider.notifier)
-          .createImport(
+          .uploadImport(
+            fileBytes: fileBytes,
             fileName: fileName,
-            fileSizeBytes: fileSizeBytes,
-            providerHint: 'gopay',
-            requiresPassword: _requiresPassword,
+            providerHint: _guessProviderHint(fileName),
+            documentPassword: _requiresPassword &&
+                    _passwordController.text.isNotEmpty
+                ? _passwordController.text.trim()
+                : null,
+            // documentPassword is cleared from memory when _passwordController is disposed.
           );
 
       if (created != null) {
-        if (_requiresPassword && _passwordController.text.isNotEmpty) {
-          await ref
-              .read(statementUploadControllerProvider.notifier)
-              .unlockImport(created.id, _passwordController.text.trim());
-        }
-
         // We MUST capture the review path before closing the modal,
         // because after pop() this widget's context is invalid.
         final reviewPath =
@@ -105,6 +108,17 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
         setState(() => _isUploading = false);
       }
     }
+  }
+
+  String _guessProviderHint(String fileName) {
+    final lower = fileName.toLowerCase();
+    if (lower.contains('bca')) return 'bca';
+    if (lower.contains('mandiri')) return 'mandiri';
+    if (lower.contains('bri')) return 'bri';
+    if (lower.contains('bni')) return 'bni';
+    if (lower.contains('gopay') || lower.contains('gojek')) return 'gopay';
+    if (lower.contains('ovo')) return 'ovo';
+    return 'other';
   }
 
   @override

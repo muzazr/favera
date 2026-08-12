@@ -16,10 +16,11 @@ class TransactionFormPage extends ConsumerStatefulWidget {
 }
 
 class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
-  TransactionType _type = TransactionType.expense;
+  TransactionDirection _type = TransactionDirection.expense;
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   String _selectedCategory = 'Belanja';
+  String _visibility = 'shared';
   bool _isSaving = false;
 
   static const _incomeCategories = [
@@ -64,7 +65,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     try {
       await ref.read(transactionListControllerProvider.notifier).addTransaction(
-            type: _type,
+            direction: _type,
             amount: amount,
             category: _selectedCategory,
             description: _descriptionController.text.trim().isNotEmpty
@@ -75,7 +76,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_type == TransactionType.income
+            content: Text(_type == TransactionDirection.income
                 ? 'Pemasukan berhasil dicatat!'
                 : 'Pengeluaran berhasil dicatat!'),
             backgroundColor: const Color(0xFF10B981),
@@ -100,7 +101,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = _type == TransactionType.income;
+    final isIncome = _type == TransactionDirection.income;
     final currentCategories = isIncome ? _incomeCategories : _expenseCategories;
 
     return AppGradientBackground(
@@ -155,7 +156,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _type = TransactionType.expense;
+                                    _type = TransactionDirection.expense;
                                     _selectedCategory = 'Belanja';
                                   });
                                 },
@@ -186,7 +187,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _type = TransactionType.income;
+                                    _type = TransactionDirection.income;
                                     _selectedCategory = 'Gaji Bulanan';
                                   });
                                 },
@@ -368,6 +369,117 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                             ),
                           ),
                         ),
+                      ),
+                      const SizedBox(height: AppSpacing.s24),
+
+                      // Visibilitas Transaksi (Privat vs Dibagikan)
+                      const Text(
+                        'Visibilitas Transaksi',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _visibility = 'shared'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: _visibility == 'shared'
+                                      ? const Color(0xFFE6F7F0)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: _visibility == 'shared'
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFFE5E7EB),
+                                    width: _visibility == 'shared' ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.people_outline_rounded,
+                                      size: 18,
+                                      color: _visibility == 'shared'
+                                          ? const Color(0xFF047857)
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Dibagikan',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: _visibility == 'shared'
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: _visibility == 'shared'
+                                            ? const Color(0xFF047857)
+                                            : const Color(0xFF374151),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _visibility = 'private'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: _visibility == 'private'
+                                      ? const Color(0xFFFEF2F2)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: _visibility == 'private'
+                                        ? const Color(0xFFEF4444)
+                                        : const Color(0xFFE5E7EB),
+                                    width: _visibility == 'private' ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.lock_outline_rounded,
+                                      size: 18,
+                                      color: _visibility == 'private'
+                                          ? const Color(0xFFB91C1C)
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Privat Saya',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: _visibility == 'private'
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: _visibility == 'private'
+                                            ? const Color(0xFFB91C1C)
+                                            : const Color(0xFF374151),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

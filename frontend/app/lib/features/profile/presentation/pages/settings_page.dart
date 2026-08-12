@@ -21,6 +21,12 @@ class SettingsPage extends ConsumerWidget {
 
     final familySpace = familyAsync.value;
     final isPaired = familySpace != null && familySpace.isPaired;
+    final String displayInviteCode;
+    if (isPaired) {
+      displayInviteCode = familySpace.inviteCode ?? 'TERHUBUNG';
+    } else {
+      displayInviteCode = ref.watch(myInviteCodeProvider).value ?? 'Memuat...';
+    }
 
     return AppGradientBackground(
       child: Scaffold(
@@ -138,7 +144,7 @@ class SettingsPage extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'ID: ${familySpace?.inviteCode ?? "R-8392-AX"}',
+                        'ID: $displayInviteCode',
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:app/features/statements/data/mock_statement_repository.dart';
 import 'package:app/mock/mock_store.dart';
 import 'package:app/shared/models/statement_model.dart';
@@ -17,8 +18,8 @@ void main() {
         'createStatementImport adds new statement import and draft transactions',
         () async {
       final created = await repository.createStatementImport(
+        fileBytes: Uint8List.fromList([1, 2, 3]),
         fileName: 'test_statement.pdf',
-        fileSizeBytes: 1024000,
         providerHint: 'bca',
       );
 
@@ -34,21 +35,22 @@ void main() {
         'unlockStatementImport unlocks protected statement with correct password',
         () async {
       final created = await repository.createStatementImport(
+        fileBytes: Uint8List.fromList([1, 2, 3]),
         fileName: 'protected.pdf',
-        fileSizeBytes: 2048000,
         providerHint: 'bca',
-        requiresPassword: true,
+        documentPassword: 'secretpassword',
       );
 
       expect(created.status, equals(StatementImportStatus.passwordRequired));
 
-      final wrongPassResult =
-          await repository.unlockStatementImport(created.id, 'wrong');
-      expect(wrongPassResult, isFalse);
+      expect(
+        () async => await repository.unlockStatementImport(created.id, 'wrong'),
+        throwsA(isA<Exception>()),
+      );
 
-      final rightPassResult =
+      final unlocked =
           await repository.unlockStatementImport(created.id, '123456');
-      expect(rightPassResult, isTrue);
+      expect(unlocked.status, equals(StatementImportStatus.reviewRequired));
 
       final drafts = await repository.getDraftTransactions(created.id);
       expect(drafts.length, equals(2));
@@ -57,8 +59,8 @@ void main() {
     test('updateDraftTransaction updates status and categories correctly',
         () async {
       final created = await repository.createStatementImport(
+        fileBytes: Uint8List.fromList([1, 2, 3]),
         fileName: 'test_statement.pdf',
-        fileSizeBytes: 1024000,
         providerHint: 'bca',
       );
 
@@ -77,13 +79,17 @@ void main() {
     test('confirmStatementImport converts drafts and clears import review',
         () async {
       final created = await repository.createStatementImport(
+        fileBytes: Uint8List.fromList([1, 2, 3]),
         fileName: 'test_statement.pdf',
-        fileSizeBytes: 1024000,
         providerHint: 'bca',
       );
 
-      final confirmed = await repository.confirmStatementImport(created.id);
-      expect(confirmed, isTrue);
+      final drafts = await repository.getDraftTransactions(created.id);
+      final confirmed = await repository.confirmStatementImport(
+        created.id,
+        draftIds: drafts.map((d) => d.id).toList(),
+      );
+      expect(confirmed.status, equals(StatementImportStatus.confirmed));
     });
   });
 }

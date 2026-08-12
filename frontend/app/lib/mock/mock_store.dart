@@ -75,7 +75,7 @@ class MockStore {
     // 2. Transactions
     final tx1 = Transaction(
       id: 'tx-001',
-      type: TransactionType.income,
+      direction: TransactionDirection.income,
       amount: 5500000,
       category: 'Gaji',
       description: 'Gaji Bulanan',
@@ -85,7 +85,7 @@ class MockStore {
     );
     final tx2 = Transaction(
       id: 'tx-002',
-      type: TransactionType.expense,
+      direction: TransactionDirection.expense,
       amount: 450000,
       category: 'Tagihan',
       description: 'Tagihan Listrik PLN',
@@ -95,7 +95,7 @@ class MockStore {
     );
     final tx3 = Transaction(
       id: 'tx-003',
-      type: TransactionType.expense,
+      direction: TransactionDirection.expense,
       amount: 150000,
       category: 'Belanja',
       description: 'Belanja Bulanan Supermarket',
@@ -299,7 +299,7 @@ class MockStore {
   int getTotalBalance() {
     int balance = 0;
     for (final tx in _transactions.values) {
-      if (tx.type == TransactionType.income) {
+      if (tx.direction == TransactionDirection.income) {
         balance += tx.amount;
       } else {
         balance -= tx.amount;
@@ -311,13 +311,13 @@ class MockStore {
 
   int getMonthlyIncome() {
     return _transactions.values
-        .where((t) => t.type == TransactionType.income)
+        .where((t) => t.direction == TransactionDirection.income)
         .fold(0, (sum, t) => sum + t.amount);
   }
 
   int getMonthlyExpense() {
     return _transactions.values
-        .where((t) => t.type == TransactionType.expense)
+        .where((t) => t.direction == TransactionDirection.expense)
         .fold(0, (sum, t) => sum + t.amount);
   }
 
@@ -449,7 +449,7 @@ class MockStore {
       if (draft.status != DraftStatus.deleted) {
         final tx = Transaction(
           id: 'tx-stm-${draft.id}',
-          type: TransactionType.expense,
+          direction: TransactionDirection.expense,
           amount: draft.amount,
           category: draft.category,
           description: draft.description,
@@ -602,22 +602,67 @@ class MockStore {
     final msgs = _chatMessages.putIfAbsent(sessionId, () => []);
     msgs.add(userMsg);
 
-    // Generate assistant reply
+    // Generate dynamic empathic assistant reply
+    final lower = text.toLowerCase();
+    String replyContent;
+    List<String> suggestedActions;
+    SafetyLevel safetyLevel = SafetyLevel.none;
+
+    if (lower.contains('stres') ||
+        lower.contains('stress') ||
+        lower.contains('tengkar') ||
+        lower.contains('bertengkar') ||
+        lower.contains('marah') ||
+        lower.contains('utang') ||
+        lower.contains('bahaya')) {
+      safetyLevel = SafetyLevel.urgentSafety;
+      replyContent =
+          'Saya mendengar kecemasan dan tekanan emosional yang sedang Anda rasakan. Bertengkar mengenai masalah finansial memang sangat menguras energi. Mari kita tenangkan pikiran sejenak. Favera menyediakan akses langsung ke Konselor Finansial dan Psikolog Pernikahan profesional yang siap mendampingi Anda dan pasangan secara netral.';
+      suggestedActions = const [
+        'Hubungi Konselor Profesional',
+        'Buat Sesi Pemulihan Bersama',
+        'Lihat Panduan Komunikasi Finansial',
+      ];
+    } else if (lower.contains('makan') ||
+        lower.contains('anggaran') ||
+        lower.contains('pos') ||
+        lower.contains('bagi') ||
+        lower.contains('mulai')) {
+      replyContent =
+          'Untuk mengelola anggaran harian seperti pengeluaran makan, langkah pertama yang disarankan adalah membuat batasan pos bulanan yang disepakati bersama. Anda dapat mencatat batas komitmen anggaran bersama di Favera agar dapat dipantau transparan oleh kedua pihak.';
+      suggestedActions = const [
+        'Buat Target Keuangan',
+        'Tambah Transaksi Baru',
+        'Susun Komitmen Bersama',
+      ];
+    } else if (lower.contains('bantu') ||
+        lower.contains('tolong') ||
+        lower.contains('finansial')) {
+      replyContent =
+          'Saya siap membantu Anda memahami gambaran finansial keluarga. Kita bisa mulai dengan meninjau pengeluaran bulanan, menyusun target tabungan bersama, atau berdiskusi mengenai prioritas kebutuhan Anda saat ini.';
+      suggestedActions = const [
+        'Tinjau Transaksi Terbaru',
+        'Atur Target Keuangan',
+        'Konseling Digital',
+      ];
+    } else {
+      replyContent =
+          'Terima kasih telah berbagi. Setiap diskusi keuangan adalah langkah baik untuk transparansi keluarga. Ada aspek spesifik dari anggaran atau komunikasi finansial yang ingin kita bedah bersama?';
+      suggestedActions = const [
+        'Tinjau Transaksi',
+        'Susun Percakapan',
+        'Bicara dengan Ahli',
+      ];
+    }
+
     final assistantMsg = ChatMessage(
       id: 'msg-${DateTime.now().millisecondsSinceEpoch + 1}',
       sessionId: sessionId,
       sender: MessageSender.assistant,
-      content:
-          'Terima kasih telah berbagi cerita. Saya di sini untuk mendampingi anda melihat kondisi finansial dan komunikasi secara netral.',
+      content: replyContent,
       timestamp: clock.now().add(const Duration(seconds: 1)),
-      suggestedActions: const [
-        'Tinjau transaksi',
-        'Susun percakapan',
-        'Bicara dengan ahli'
-      ],
-      safetyLevel: text.toLowerCase().contains('bahaya')
-          ? SafetyLevel.urgentSafety
-          : SafetyLevel.none,
+      suggestedActions: suggestedActions,
+      safetyLevel: safetyLevel,
     );
     msgs.add(assistantMsg);
 

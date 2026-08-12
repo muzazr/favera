@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/route_names.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/widgets/app_gradient_background.dart';
+import '../../../auth/application/auth_controller.dart';
+import '../../application/family_controller.dart';
 
-class FamilySuccessPage extends StatelessWidget {
+class FamilySuccessPage extends ConsumerWidget {
   const FamilySuccessPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final familySpace = ref.watch(familyControllerProvider).value;
+    final user = ref.watch(authControllerProvider).value;
+    final displayCode = familySpace?.inviteCode ?? 'TERHUBUNG';
+    final partnerName = familySpace?.partnerName ?? 'Pasangan';
+    final displayNameText = '${user?.name ?? 'Anda'} & $partnerName';
+
     return AppGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -87,9 +96,9 @@ class FamilySuccessPage extends StatelessWidget {
                       const SizedBox(height: AppSpacing.s12),
 
                       // Title: Budi & Pasangan
-                      const Text(
-                        'Budi & Pasangan',
-                        style: TextStyle(
+                      Text(
+                        displayNameText,
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF111827),
@@ -107,9 +116,9 @@ class FamilySuccessPage extends StatelessWidget {
                           color: const Color(0xFF00B2FF),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
-                          'ID: R-8392-AX',
-                          style: TextStyle(
+                        child: Text(
+                          'ID: $displayCode',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,

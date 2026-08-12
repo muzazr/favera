@@ -16,8 +16,8 @@ class FamilyConnectionDetailPage extends ConsumerWidget {
     final familyAsync = ref.watch(familyControllerProvider);
     final familySpace = familyAsync.value;
 
-    final partnerName = familySpace?.partnerName ?? 'Siti Nurbaya';
-    final partnerId = familySpace?.inviteCode ?? 'R-8392-AX';
+    final partnerName = familySpace?.partnerName ?? 'Pasangan';
+    final partnerId = familySpace?.inviteCode ?? 'TERHUBUNG';
 
     return AppGradientBackground(
       child: Scaffold(

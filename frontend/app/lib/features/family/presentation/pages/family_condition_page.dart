@@ -69,14 +69,66 @@ class FamilyConditionPage extends ConsumerWidget {
             onRetry: () => ref.invalidate(familyAssessmentControllerProvider),
           ),
           data: (assessment) {
-            final isSafetyRequired =
-                assessment?.level == AssessmentLevel.safetySupportRequired;
+            if (assessment == null) {
+              return const AppEmptyView(
+                title: 'Data Asesmen Kosong',
+                description: 'Belum ada data asesmen untuk keluarga Anda.',
+              );
+            }
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            return Consumer(
+              builder: (context, ref, child) {
+                final narrativeAsync = ref.watch(familyAssessmentNarrativeProvider(assessment.id));
+                return narrativeAsync.when(
+                  loading: () => const AppLoadingView(message: 'Menganalisis narasi keluarga...'),
+                  error: (err, st) => _buildBody(context, ref, assessment, null),
+                  data: (narrative) => _buildBody(context, ref, assessment, narrative),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, WidgetRef ref, FamilyAssessment assessment, FamilyAssessmentNarrative? narrative) {
+    final isSafetyRequired =
+        assessment.level == AssessmentLevel.safetySupportRequired;
+
+    final headline = narrative?.headline.isNotEmpty == true
+        ? narrative!.headline
+        : (isSafetyRequired ? 'Perlu Perhatian & Dukungan' : 'Aman Terkendali');
+
+    final overviewText = narrative?.overview.isNotEmpty == true
+        ? narrative!.overview
+        : assessment.summaryText;
+
+    String? financialNote;
+    if (narrative != null) {
+      final match = narrative.domainHighlights.where(
+        (e) => e.domain.toLowerCase() == 'keuangan' || e.domain.toLowerCase() == 'financial',
+      );
+      if (match.isNotEmpty) {
+        financialNote = match.first.note;
+      }
+    }
+
+    String? emotionalNote;
+    if (narrative != null) {
+      final match = narrative.domainHighlights.where(
+        (e) => e.domain.toLowerCase() == 'komunikasi' || e.domain.toLowerCase() == 'emotional',
+      );
+      if (match.isNotEmpty) {
+        emotionalNote = match.first.note;
+      }
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
                   // 1. Top Hero Card (Aman Terkendali)
                   Container(
                     width: double.infinity,
@@ -116,9 +168,7 @@ class FamilyConditionPage extends ConsumerWidget {
 
                         // Title
                         Text(
-                          isSafetyRequired
-                              ? 'Perlu Perhatian & Dukungan'
-                              : 'Aman Terkendali',
+                          headline,
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -131,8 +181,7 @@ class FamilyConditionPage extends ConsumerWidget {
 
                         // Description
                         Text(
-                          assessment?.summaryText ??
-                              'Keuangan bulan ini stabil dan komunikasi dari Check-In mingguan menunjukkan tingkat stres yang rendah. Pertahankan ritme ini!',
+                          overviewText,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,
@@ -330,19 +379,20 @@ class FamilyConditionPage extends ConsumerWidget {
                             color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Row(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.info_outline_rounded,
                                 color: Color(0xFF3B82F6),
                                 size: 18,
                               ),
-                              SizedBox(width: 10),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'Tidak ada pengeluaran anomali. Tabungan darurat aman di angka 80% dari target.',
-                                  style: TextStyle(
+                                  financialNote ??
+                                      'Tidak ada pengeluaran anomali. Tabungan darurat aman di angka 80% dari target.',
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     color: Color(0xFF1E40AF),
                                     height: 1.4,
@@ -573,15 +623,16 @@ class FamilyConditionPage extends ConsumerWidget {
                             color: const Color(0xFFFEE2E2),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Row(
+                          child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('😌', style: TextStyle(fontSize: 16)),
-                              SizedBox(width: 10),
+                              const Text('😌', style: TextStyle(fontSize: 16)),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'Siti merasa sedikit kelelahan urus rumah, namun Budi sangat suportif minggu ini.',
-                                  style: TextStyle(
+                                  emotionalNote ??
+                                      'Siti merasa sedikit kelelahan urus rumah, namun Budi sangat suportif minggu ini.',
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     color: Color(0xFF991B1B),
                                     height: 1.4,
@@ -598,9 +649,5 @@ class FamilyConditionPage extends ConsumerWidget {
                 ],
               ),
             );
-          },
-        ),
-      ),
-    );
   }
 }

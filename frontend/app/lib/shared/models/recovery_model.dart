@@ -24,6 +24,8 @@ enum CommitmentStatus {
   active,
   completed,
   cancelled,
+  overdue,
+  revised,
 }
 
 class RecoverySession {
@@ -55,24 +57,66 @@ class RecoverySession {
 
   factory RecoverySession.fromJson(Map<String, dynamic> json) {
     return RecoverySession(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      topic: json['topic'] as String,
-      status: RecoverySessionStatus.values.firstWhere(
-        (e) => e.name == json['status'],
-        orElse: () => RecoverySessionStatus.draft,
-      ),
-      readinessLevel: ReadinessLevel.values.firstWhere(
-        (e) => e.name == json['readiness_level'],
-        orElse: () => ReadinessLevel.ready,
-      ),
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? 'Sesi Pemulihan',
+      topic: json['topic'] as String? ?? 'Diskusi Keuangan',
+      status: _parseSessionStatus(json['status'] as String?),
+      readinessLevel: _parseReadinessLevel(json['readiness_level'] as String?),
       privateReflection: json['private_reflection'] as String?,
       publishedStatement: json['published_statement'] as String?,
       partnerResponseText: json['partner_response_text'] as String?,
       alignmentSummary: json['alignment_summary'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: json['created_at'] != null
+          ? (DateTime.tryParse(json['created_at'] as String) ?? DateTime.now())
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? (DateTime.tryParse(json['updated_at'] as String) ?? DateTime.now())
+          : DateTime.now(),
     );
+  }
+
+  static RecoverySessionStatus _parseSessionStatus(String? statusStr) {
+    if (statusStr == null) return RecoverySessionStatus.draft;
+    final normalized = statusStr.toLowerCase().replaceAll('_', '');
+    switch (normalized) {
+      case 'readinesscheck':
+        return RecoverySessionStatus.readinessCheck;
+      case 'privatereflection':
+        return RecoverySessionStatus.privateReflection;
+      case 'waitingforpartner':
+        return RecoverySessionStatus.waitingForPartner;
+      case 'partnerresponse':
+        return RecoverySessionStatus.partnerResponse;
+      case 'alignment':
+        return RecoverySessionStatus.alignment;
+      case 'commitmentdraft':
+        return RecoverySessionStatus.commitmentDraft;
+      case 'commitmentactive':
+        return RecoverySessionStatus.commitmentActive;
+      case 'completed':
+        return RecoverySessionStatus.completed;
+      case 'paused':
+        return RecoverySessionStatus.paused;
+      case 'mediationrecommended':
+        return RecoverySessionStatus.mediationRecommended;
+      case 'draft':
+      default:
+        return RecoverySessionStatus.draft;
+    }
+  }
+
+  static ReadinessLevel _parseReadinessLevel(String? readinessStr) {
+    if (readinessStr == null) return ReadinessLevel.ready;
+    final normalized = readinessStr.toLowerCase().replaceAll('_', '');
+    switch (normalized) {
+      case 'needtime':
+        return ReadinessLevel.needTime;
+      case 'unsafe':
+        return ReadinessLevel.unsafe;
+      case 'ready':
+      default:
+        return ReadinessLevel.ready;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -147,20 +191,43 @@ class Commitment {
 
   factory Commitment.fromJson(Map<String, dynamic> json) {
     return Commitment(
-      id: json['id'] as String,
-      recoverySessionId: json['recovery_session_id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      targetDate: DateTime.parse(json['target_date'] as String),
-      status: CommitmentStatus.values.firstWhere(
-        (e) => e.name == json['status'],
-        orElse: () => CommitmentStatus.draft,
-      ),
-      createdBy: json['created_by'] as String,
+      id: json['id'] as String? ?? '',
+      recoverySessionId: json['recovery_session_id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      targetDate: json['target_date'] != null
+          ? (DateTime.tryParse(json['target_date'] as String) ?? DateTime.now())
+          : DateTime.now(),
+      status: _parseCommitmentStatus(json['status'] as String?),
+      createdBy: json['created_by'] as String? ?? '',
       approvedByPartner: json['approved_by_partner'] as bool? ?? false,
       progressPercentage: json['progress_percentage'] as int? ?? 0,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: json['created_at'] != null
+          ? (DateTime.tryParse(json['created_at'] as String) ?? DateTime.now())
+          : DateTime.now(),
     );
+  }
+
+  static CommitmentStatus _parseCommitmentStatus(String? statusStr) {
+    if (statusStr == null) return CommitmentStatus.draft;
+    final normalized = statusStr.toLowerCase().replaceAll('_', '');
+    switch (normalized) {
+      case 'pendingpartnerapproval':
+        return CommitmentStatus.pendingPartnerApproval;
+      case 'active':
+        return CommitmentStatus.active;
+      case 'completed':
+        return CommitmentStatus.completed;
+      case 'cancelled':
+        return CommitmentStatus.cancelled;
+      case 'overdue':
+        return CommitmentStatus.overdue;
+      case 'revised':
+        return CommitmentStatus.revised;
+      case 'draft':
+      default:
+        return CommitmentStatus.draft;
+    }
   }
 
   Map<String, dynamic> toJson() {

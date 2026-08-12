@@ -43,12 +43,10 @@ final activeCommitmentsProvider =
 });
 
 class RecoveryController extends AsyncNotifier<void> {
-  late final RecoveryRepository _repository;
+  RecoveryRepository get _repository => ref.read(recoveryRepositoryProvider);
 
   @override
-  Future<void> build() async {
-    _repository = ref.watch(recoveryRepositoryProvider);
-  }
+  Future<void> build() async {}
 
   void _invalidateAll() {
     ref.invalidate(recoverySessionListProvider);
@@ -146,6 +144,20 @@ class RecoveryController extends AsyncNotifier<void> {
       await _repository.updateCommitmentProgress(
         commitmentId: commitmentId,
         progress: progress,
+      );
+      _invalidateAll();
+    });
+  }
+
+  Future<void> approveCommitment({
+    required String commitmentId,
+    String action = 'approve',
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repository.approveCommitment(
+        commitmentId: commitmentId,
+        action: action,
       );
       _invalidateAll();
     });

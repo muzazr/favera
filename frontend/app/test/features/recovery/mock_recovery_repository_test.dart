@@ -81,5 +81,21 @@ void main() {
       );
       expect(updated.progressPercentage, equals(80));
     });
+
+    test('approveCommitment approves and activates commitment', () async {
+      final cmt = await repository.createCommitment(
+        recoverySessionId: 'rec-demo-001',
+        title: 'Komitmen Tes',
+        description: 'Deskripsi tes',
+        targetDate: DateTime.now().add(const Duration(days: 30)),
+      );
+
+      final approved = await repository.approveCommitment(
+        commitmentId: cmt.id,
+        action: 'approve',
+      );
+      expect(approved.approvedByPartner, isTrue);
+      expect(approved.status, equals(CommitmentStatus.active));
+    });
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'route_names.dart';
 
 class RouteState {
@@ -40,11 +41,29 @@ class RouteState {
 }
 
 class RouteStateNotifier extends StateNotifier<RouteState> {
-  RouteStateNotifier([RouteState? initial])
-      : super(initial ?? RouteState.initial());
+  static const _onboardingKey = 'favera_onboarding_completed_flag';
 
-  void setOnboardingCompleted(bool val) {
+  RouteStateNotifier([RouteState? initial])
+      : super(initial ?? RouteState.initial()) {
+    _loadOnboardingState();
+  }
+
+  Future<void> _loadOnboardingState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final completed = prefs.getBool(_onboardingKey) ?? false;
+      if (completed) {
+        state = state.copyWith(onboardingCompleted: true);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> setOnboardingCompleted(bool val) async {
     state = state.copyWith(onboardingCompleted: val);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_onboardingKey, val);
+    } catch (_) {}
   }
 
   void setAuthenticated(bool val) {
@@ -73,7 +92,6 @@ abstract final class RouteRedirect {
     final isOnboardingRoute = location == AppRoutePaths.onboarding;
     final isAuthRoute = location.startsWith('/auth/');
     final isProfileSetupRoute = location == AppRoutePaths.profileSetup;
-    final isFamilyConnectRoute = location.startsWith('/family/');
     final isDebugRoute = location.startsWith('/debug/');
     final isPreview = location.contains('preview=true');
 
@@ -82,31 +100,24 @@ abstract final class RouteRedirect {
       return null;
     }
 
-    // 1. Onboarding Guard
-    if (!state.onboardingCompleted) {
-      return isOnboardingRoute ? null : AppRoutePaths.onboarding;
-    }
-
-    // 2. Auth Guard
+    // 1. Unauthenticated Users Guard
     if (!state.isAuthenticated) {
+      // First-time app open: show onboarding intro slider if not completed yet
+      if (!state.onboardingCompleted) {
+        return isOnboardingRoute ? null : AppRoutePaths.onboarding;
+      }
+      // Otherwise show login/auth screens
       return isAuthRoute ? null : AppRoutePaths.login;
     }
 
-    // 3. Profile Completion Guard
+    // 2. Authenticated Users Guard
+    // 2a. Profile Completion Guard
     if (!state.profileCompleted) {
       return isProfileSetupRoute ? null : AppRoutePaths.profileSetup;
     }
 
-    // 4. Family Pairing Guard
-    if (!state.familyPaired) {
-      return isFamilyConnectRoute ? null : AppRoutePaths.familyConnect;
-    }
-
-    // 5. If all onboarding/auth/profile/family requirements are met, prevent going back to auth screens
-    if (isOnboardingRoute ||
-        isAuthRoute ||
-        isProfileSetupRoute ||
-        isFamilyConnectRoute) {
+    // 2b. If authenticated and profile is completed, prevent stuck on onboarding/auth/profile screens
+    if (isOnboardingRoute || isAuthRoute || isProfileSetupRoute) {
       return AppRoutePaths.home;
     }
 

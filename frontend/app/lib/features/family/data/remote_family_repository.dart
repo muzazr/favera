@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
-import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/api_error_decoder.dart';
 import '../../../shared/models/check_in_model.dart';
 import '../../../shared/models/family_model.dart';
 import 'family_repository.dart';
@@ -10,90 +10,157 @@ class RemoteFamilyRepository implements FamilyRepository {
 
   RemoteFamilyRepository({required this.apiClient});
 
-  @override
-  Future<FamilySpace> createSpace() async {
-    try {
-      final response = await apiClient.dio.post('/family/spaces');
-      final data = response.data['data'] as Map<String, dynamic>;
-      return FamilySpace.fromJson(data);
-    } on DioException catch (e) {
-      throw _handleDioError(e);
+  dynamic _extractData(dynamic body) {
+    if (body is Map<String, dynamic> && body.containsKey('data')) {
+      return body['data'];
     }
+    return body;
   }
 
   @override
   Future<FamilySpace?> getFamilySpace() async {
     try {
-      final response = await apiClient.dio.get('/family/spaces/me');
-      final data = response.data['data'] as Map<String, dynamic>?;
-      if (data == null) return null;
+      final response = await apiClient.dio.get('/family');
+      final data = _extractData(response.data);
+      if (data == null || data is! Map<String, dynamic>) return null;
       return FamilySpace.fromJson(data);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
   @override
-  Future<FamilySpace> joinSpace({required String inviteCode}) async {
-    try {
-      final response = await apiClient.dio.post('/family/spaces/join', data: {
-        'invite_code': inviteCode,
-      });
-      final data = response.data['data'] as Map<String, dynamic>;
-      return FamilySpace.fromJson(data);
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
-  }
-
-  @override
-  Future<void> disconnectSpace({required String spaceId}) async {
-    try {
-      await apiClient.dio.post('/family/spaces/disconnect', data: {
-        'space_id': spaceId,
-      });
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
-  }
-
-  @override
-  Future<List<FamilySpace>> getInvitations() async {
+  Future<List<FamilyInvitation>> getInvitations() async {
     try {
       final response = await apiClient.dio.get('/family/invitations');
-      final list = response.data['data'] as List<dynamic>? ?? [];
-      return list
-          .map((e) => FamilySpace.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final data = _extractData(response.data);
+      if (data is List) {
+        return data
+            .map((e) => FamilyInvitation.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      if (e.response?.statusCode == 404) return [];
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
   @override
-  Future<FamilySpace> acceptInvitation({required String invitationId}) async {
+  Future<FamilyInvitation> createInvitation({String? inviteeEmail}) async {
     try {
       final response = await apiClient.dio.post(
-        '/family/invitations/accept',
-        data: {'invitation_id': invitationId},
+        '/family/invitations',
+        data: {
+          if (inviteeEmail != null && inviteeEmail.isNotEmpty)
+            'invitee_email': inviteeEmail,
+        },
       );
-      final data = response.data['data'] as Map<String, dynamic>;
-      return FamilySpace.fromJson(data);
+      final data = _extractData(response.data) as Map<String, dynamic>;
+      return FamilyInvitation.fromJson(data);
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
   @override
-  Future<void> rejectInvitation({required String invitationId}) async {
+  Future<FamilySpace> acceptInvitation({
+    required String inviteCode,
+    bool grantFinancialConsent = true,
+    bool grantCheckInConsent = true,
+  }) async {
+    try {
+      final categories = <String>[];
+      if (grantFinancialConsent) categories.add('financial_summary');
+      if (grantCheckInConsent) categories.add('check_in_summary');
+
+      final response = await apiClient.dio.post(
+        '/family/invitations/$inviteCode/accept',
+        data: {
+          'consent_version': '1.0',
+          'shared_data_categories': categories,
+        },
+      );
+      final data = _extractData(response.data) as Map<String, dynamic>;
+      return FamilySpace.fromJson(data);
+    } on DioException catch (e) {
+      throw ApiErrorDecoder.decode(e);
+    }
+  }
+
+  @override
+  Future<FamilyInvitation> rejectInvitation({required String inviteCode}) async {
+    try {
+      final response = await apiClient.dio.post(
+        '/family/invitations/$inviteCode/reject',
+      );
+      final data = _extractData(response.data) as Map<String, dynamic>;
+      return FamilyInvitation.fromJson(data);
+    } on DioException catch (e) {
+      throw ApiErrorDecoder.decode(e);
+    }
+  }
+
+  @override
+  Future<void> deleteInvitation({required String invitationId}) async {
+    try {
+      await apiClient.dio.delete('/family/invitations/$invitationId');
+    } on DioException catch (e) {
+      throw ApiErrorDecoder.decode(e);
+    }
+  }
+
+  @override
+  Future<FamilySpace> updateSettings(Map<String, dynamic> settings) async {
+    try {
+      final response = await apiClient.dio.patch(
+        '/family/settings',
+        data: settings,
+      );
+      final data = _extractData(response.data) as Map<String, dynamic>;
+      return FamilySpace.fromJson(data);
+    } on DioException catch (e) {
+      throw ApiErrorDecoder.decode(e);
+    }
+  }
+
+  @override
+  Future<FamilySpace> updateConsents({
+    required bool shareFinancialSummary,
+    required bool shareCheckInSummary,
+  }) async {
+    try {
+      final categories = <String>[];
+      if (shareFinancialSummary) categories.add('financial_summary');
+      if (shareCheckInSummary) categories.add('check_in_summary');
+
+      final response = await apiClient.dio.post(
+        '/family/consents',
+        data: {
+          'consent_version': '1.0',
+          'shared_data_categories': categories,
+        },
+      );
+      final data = _extractData(response.data) as Map<String, dynamic>;
+      return FamilySpace.fromJson(data);
+    } on DioException catch (e) {
+      throw ApiErrorDecoder.decode(e);
+    }
+  }
+
+  @override
+  Future<void> disconnectFamily({String? password, String? reason}) async {
     try {
       await apiClient.dio.post(
-        '/family/invitations/reject',
-        data: {'invitation_id': invitationId},
+        '/family/disconnect',
+        data: {
+          if (password != null) 'password': password,
+          if (reason != null) 'reason': reason,
+        },
       );
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -101,12 +168,12 @@ class RemoteFamilyRepository implements FamilyRepository {
   Future<WeeklyCheckIn?> getCurrentCheckIn() async {
     try {
       final response = await apiClient.dio.get('/check-ins/current');
-      final data = response.data['data'] as Map<String, dynamic>?;
+      final data = _extractData(response.data) as Map<String, dynamic>?;
       if (data == null) return null;
       return WeeklyCheckIn.fromJson(data);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -117,6 +184,20 @@ class RemoteFamilyRepository implements FamilyRepository {
     required String concern,
   }) async {
     try {
+      // 1. Try saving answers as private draft (if supported by backend)
+      try {
+        await apiClient.dio.put(
+          '/check-ins/$checkInId/answers',
+          data: {
+            'my_emotion': emotion,
+            'main_concern': concern,
+          },
+        );
+      } catch (_) {
+        // Fall back if server expects answers payload directly on submit
+      }
+
+      // 2. Submit the check-in (including answers body payload for server compatibility)
       final response = await apiClient.dio.post(
         '/check-ins/$checkInId/submit',
         data: {
@@ -124,10 +205,10 @@ class RemoteFamilyRepository implements FamilyRepository {
           'main_concern': concern,
         },
       );
-      final data = response.data['data'] as Map<String, dynamic>;
+      final data = _extractData(response.data) as Map<String, dynamic>;
       return WeeklyCheckIn.fromJson(data);
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -135,14 +216,14 @@ class RemoteFamilyRepository implements FamilyRepository {
   Future<WeeklyCheckIn?> simulatePartnerSubmit(String checkInId) async {
     try {
       final response = await apiClient.dio.post(
-        '/check-ins/$checkInId/simulate-partner-submit',
+        '/check-ins/$checkInId/submit',
       );
-      final data = response.data['data'] as Map<String, dynamic>?;
+      final data = _extractData(response.data) as Map<String, dynamic>?;
       if (data == null) return null;
       return WeeklyCheckIn.fromJson(data);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -150,23 +231,25 @@ class RemoteFamilyRepository implements FamilyRepository {
   Future<FamilyAssessment?> getCurrentFamilyAssessment() async {
     try {
       final response = await apiClient.dio.get('/family-assessments/current');
-      final data = response.data['data'] as Map<String, dynamic>?;
+      final data = _extractData(response.data) as Map<String, dynamic>?;
       if (data == null) return null;
       return FamilyAssessment.fromJson(data);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
-  AppFailure _handleDioError(DioException e) {
-    final status = e.response?.statusCode;
-    final msg = e.response?.data?['message'] as String? ??
-        e.message ??
-        'Terjadi kesalahan server';
-    if (status == 401) return AuthFailure(message: msg);
-    if (status == 404) return NotFoundFailure(message: msg);
-    if (status == 400 || status == 422) return ValidationFailure(message: msg);
-    return NetworkFailure(message: msg);
+  @override
+  Future<FamilyAssessmentNarrative?> getFamilyAssessmentNarrative(String assessmentId) async {
+    try {
+      final response = await apiClient.dio.get('/family-assessments/$assessmentId');
+      final data = _extractData(response.data) as Map<String, dynamic>?;
+      if (data == null) return null;
+      return FamilyAssessmentNarrative.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      throw ApiErrorDecoder.decode(e);
+    }
   }
 }

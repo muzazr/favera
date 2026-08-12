@@ -74,7 +74,7 @@ class GoalDetailPage extends ConsumerWidget {
                     .read(addContributionControllerProvider.notifier)
                     .addContribution(
                       goal.id,
-                      sourceName: source,
+                      note: source,
                       amount: amount,
                     );
 

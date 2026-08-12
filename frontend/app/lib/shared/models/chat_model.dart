@@ -29,22 +29,32 @@ class ChatMessage {
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    final requiresProf = json['requires_professional_support'] == true;
+    final safetyStr = json['safety_level'] as String?;
+    SafetyLevel sLevel = SafetyLevel.none;
+    if (requiresProf || safetyStr == 'urgent' || safetyStr == 'alert') {
+      sLevel = SafetyLevel.urgentSafety;
+    } else if (safetyStr == 'warning' || safetyStr == 'supportRecommended') {
+      sLevel = SafetyLevel.supportRecommended;
+    }
+
     return ChatMessage(
-      id: json['id'] as String,
-      sessionId: json['session_id'] as String,
-      sender: json['sender'] == 'user'
+      id: json['id'] as String? ?? 'msg-${DateTime.now().millisecondsSinceEpoch}',
+      sessionId: json['session_id'] as String? ?? '',
+      sender: (json['sender'] == 'user' || json['role'] == 'user')
           ? MessageSender.user
           : MessageSender.assistant,
-      content: json['content'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      content: json['content'] as String? ?? json['message'] as String? ?? '',
+      timestamp: json['timestamp'] != null
+          ? (DateTime.tryParse(json['timestamp'] as String) ?? DateTime.now())
+          : (json['created_at'] != null
+              ? (DateTime.tryParse(json['created_at'] as String) ?? DateTime.now())
+              : DateTime.now()),
       suggestedActions: (json['suggested_actions'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
-      safetyLevel: SafetyLevel.values.firstWhere(
-        (e) => e.name == json['safety_level'],
-        orElse: () => SafetyLevel.none,
-      ),
+      safetyLevel: sLevel,
     );
   }
 
@@ -76,9 +86,11 @@ class ChatSession {
 
   factory ChatSession.fromJson(Map<String, dynamic> json) {
     return ChatSession(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      id: json['id'] as String? ?? 'session-${DateTime.now().millisecondsSinceEpoch}',
+      title: json['title'] as String? ?? 'Sesi Konseling',
+      createdAt: json['created_at'] != null
+          ? (DateTime.tryParse(json['created_at'] as String) ?? DateTime.now())
+          : DateTime.now(),
       lastMessage: json['last_message'] as String?,
     );
   }
