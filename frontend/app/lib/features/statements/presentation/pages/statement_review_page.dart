@@ -413,9 +413,21 @@ class _StatementReviewPageState extends ConsumerState<StatementReviewPage> {
                   : () async {
                       setState(() => _isConfirming = true);
                       try {
+                        // Collect all non-deleted draft IDs for confirmation.
+                        final draftsValue = ref
+                            .read(statementDraftsControllerProvider(widget.importId));
+                        final draftIds = draftsValue.valueOrNull
+                                ?.where((d) => d.status != DraftStatus.deleted)
+                                .map((d) => d.id)
+                                .toList() ??
+                            [];
+
                         final success = await ref
                             .read(statementUploadControllerProvider.notifier)
-                            .confirmImport(widget.importId);
+                            .confirmImport(
+                              widget.importId,
+                              draftIds: draftIds,
+                            );
 
                         if (context.mounted && success) {
                           ScaffoldMessenger.of(context).showSnackBar(

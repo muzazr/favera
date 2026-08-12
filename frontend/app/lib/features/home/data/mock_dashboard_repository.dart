@@ -30,7 +30,7 @@ class MockDashboardRepository implements DashboardRepository {
     int income = 0;
     int expense = 0;
     for (final tx in transactions) {
-      if (tx.type == TransactionType.income) {
+      if (tx.direction == TransactionDirection.income) {
         income += tx.amount;
       } else {
         expense += tx.amount;

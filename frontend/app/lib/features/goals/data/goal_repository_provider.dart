@@ -13,7 +13,7 @@ final goalRepositoryProvider = Provider<GoalRepository>((ref) {
   final mode = config.dataSourceFor(DataDomain.goals);
   if (mode == DataSourceMode.remote) {
     final client = ref.watch(apiClientProvider);
-    return RemoteGoalRepository(dio: client.dio);
+    return RemoteGoalRepository(apiClient: client);
   }
   final store = ref.watch(mockStoreProvider);
   return MockGoalRepository(store: store);

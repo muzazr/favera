@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/errors/api_error_decoder.dart';
 import '../../../core/errors/app_failure.dart';
 import '../../../shared/models/recovery_model.dart';
 import 'recovery_repository.dart';
@@ -221,13 +222,6 @@ class RemoteRecoveryRepository implements RecoveryRepository {
   }
 
   AppFailure _handleDioError(DioException e) {
-    final status = e.response?.statusCode;
-    final msg = e.response?.data?['message'] as String? ??
-        e.message ??
-        'Terjadi kesalahan server';
-    if (status == 401) return AuthFailure(message: msg);
-    if (status == 404) return NotFoundFailure(message: msg);
-    if (status == 400 || status == 422) return ValidationFailure(message: msg);
-    return NetworkFailure(message: msg);
+    return ApiErrorDecoder.decode(e);
   }
 }

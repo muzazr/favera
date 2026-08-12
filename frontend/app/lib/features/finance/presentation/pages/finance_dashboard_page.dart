@@ -10,6 +10,7 @@ import 'package:app/core/widgets/app_gradient_background.dart';
 import 'package:app/features/statements/presentation/widgets/statement_upload_modal.dart';
 import 'package:app/features/home/application/dashboard_controller.dart';
 import 'package:app/features/home/presentation/widgets/balance_hero_card.dart';
+import 'package:app/shared/models/transaction_model.dart';
 
 class FinanceDashboardPage extends ConsumerWidget {
   const FinanceDashboardPage({super.key});
@@ -359,7 +360,8 @@ class FinanceDashboardPage extends ConsumerWidget {
                           ),
                         ] else ...[
                           ...summary.recentTransactions.map((tx) {
-                            final isIncome = tx.type.name == 'income';
+                            final isIncome =
+                                tx.direction == TransactionDirection.income;
 
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
-import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/api_error_decoder.dart';
 import '../../../shared/models/chat_model.dart';
 import 'chat_repository.dart';
 
@@ -13,12 +13,14 @@ class RemoteChatRepository implements ChatRepository {
   Future<List<ChatSession>> getChatSessions() async {
     try {
       final response = await apiClient.dio.get('/chat-sessions');
-      final list = response.data['data'] as List<dynamic>? ?? [];
+      // Backend returns {"items": [...]}, let's unwrap it defensively
+      final dataMap = response.data as Map<String, dynamic>;
+      final list = (dataMap['items'] ?? dataMap['data']) as List<dynamic>? ?? [];
       return list
           .map((e) => ChatSession.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -28,10 +30,11 @@ class RemoteChatRepository implements ChatRepository {
       final response = await apiClient.dio.post('/chat-sessions', data: {
         if (title != null) 'title': title,
       });
-      final data = response.data['data'] as Map<String, dynamic>;
+      final dataMap = response.data as Map<String, dynamic>;
+      final data = (dataMap['data'] ?? dataMap) as Map<String, dynamic>;
       return ChatSession.fromJson(data);
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -40,12 +43,13 @@ class RemoteChatRepository implements ChatRepository {
     try {
       final response =
           await apiClient.dio.get('/chat-sessions/$sessionId/messages');
-      final list = response.data['data'] as List<dynamic>? ?? [];
+      final dataMap = response.data as Map<String, dynamic>;
+      final list = (dataMap['items'] ?? dataMap['data']) as List<dynamic>? ?? [];
       return list
           .map((e) => ChatMessage.fromJson(e as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -59,10 +63,11 @@ class RemoteChatRepository implements ChatRepository {
         '/chat-sessions/$sessionId/messages',
         data: {'content': content},
       );
-      final data = response.data['data'] as Map<String, dynamic>;
+      final dataMap = response.data as Map<String, dynamic>;
+      final data = (dataMap['data'] ?? dataMap) as Map<String, dynamic>;
       return ChatMessage.fromJson(data);
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 
@@ -71,18 +76,7 @@ class RemoteChatRepository implements ChatRepository {
     try {
       await apiClient.dio.delete('/chat-sessions/$sessionId');
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
-  }
-
-  AppFailure _handleDioError(DioException e) {
-    final status = e.response?.statusCode;
-    final msg = e.response?.data?['message'] as String? ??
-        e.message ??
-        'Terjadi kesalahan server';
-    if (status == 401) return AuthFailure(message: msg);
-    if (status == 404) return NotFoundFailure(message: msg);
-    if (status == 400 || status == 422) return ValidationFailure(message: msg);
-    return NetworkFailure(message: msg);
   }
 }

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
-import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/api_error_decoder.dart';
 import '../../../shared/models/family_model.dart';
 import '../../../shared/models/goal_model.dart';
 import '../../../shared/models/transaction_model.dart';
@@ -46,11 +46,7 @@ class RemoteDashboardRepository implements DashboardRepository {
         hasPendingCheckIn: data['has_pending_check_in'] as bool? ?? false,
       );
     } on DioException catch (e) {
-      final status = e.response?.statusCode;
-      final msg =
-          e.response?.data?['message'] as String? ?? 'Terjadi kesalahan';
-      if (status == 401) throw AuthFailure(message: msg);
-      throw NetworkFailure(message: msg);
+      throw ApiErrorDecoder.decode(e);
     }
   }
 }

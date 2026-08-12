@@ -22,9 +22,13 @@ class MockGoalRepository implements GoalRepository {
   @override
   Future<FinancialGoal> createGoal(FinancialGoal goal) async {
     await Future.delayed(const Duration(milliseconds: 300));
-    final newGoal = goal.id.startsWith('goal-')
-        ? goal
-        : goal.copyWith(id: 'goal-${DateTime.now().millisecondsSinceEpoch}');
+    // In mock, new goals start as pending approval — matching backend contract.
+    final newGoal = goal.copyWith(
+      id: goal.id.startsWith('goal-')
+          ? goal.id
+          : 'goal-${DateTime.now().millisecondsSinceEpoch}',
+      status: GoalStatus.pendingPartnerApproval,
+    );
     _store.addGoal(newGoal);
     return newGoal;
   }
@@ -36,9 +40,7 @@ class MockGoalRepository implements GoalRepository {
   ) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final existing = _store.getGoalById(id);
-    if (existing == null) {
-      throw Exception('Target keuangan tidak ditemukan');
-    }
+    if (existing == null) throw Exception('Target keuangan tidak ditemukan');
 
     final updated = existing.copyWith(
       name: updates['name'] as String? ?? existing.name,
@@ -64,36 +66,37 @@ class MockGoalRepository implements GoalRepository {
   }
 
   @override
-  Future<FinancialGoal> approveGoal(String id) async {
+  Future<FinancialGoal> approveGoal(
+    String id, {
+    String action = 'approve',
+  }) async {
     await Future.delayed(const Duration(milliseconds: 200));
     final existing = _store.getGoalById(id);
-    if (existing == null) {
-      throw Exception('Target keuangan tidak ditemukan');
-    }
+    if (existing == null) throw Exception('Target keuangan tidak ditemukan');
 
     final updated = existing.copyWith(
-      approvedByPartner: true,
-      status: GoalStatus.active,
+      approvedByPartner: action == 'approve',
+      status: action == 'approve' ? GoalStatus.active : GoalStatus.cancelled,
     );
     _store.addGoal(updated);
     return updated;
   }
 
   @override
-  Future<FinancialGoal> addContribution(
+  Future<GoalContribution> addContribution(
     String id, {
-    required String sourceName,
     required int amount,
+    String? transactionId,
+    String? note,
   }) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final updated = _store.addContributionToGoal(
       id,
-      sourceName: sourceName,
+      sourceName: note ?? transactionId ?? 'Kontribusi Manual',
       amount: amount,
     );
-    if (updated == null) {
-      throw Exception('Target keuangan tidak ditemukan');
-    }
-    return updated;
+    if (updated == null) throw Exception('Target keuangan tidak ditemukan');
+    // Return the newly added contribution
+    return updated.contributions.first;
   }
 }

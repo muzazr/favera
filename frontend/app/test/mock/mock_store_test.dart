@@ -24,7 +24,7 @@ void main() {
     test('addTransaction mutates state and updates totals', () {
       final newTx = Transaction(
         id: 'tx-new-1',
-        type: TransactionType.income,
+        direction: TransactionDirection.income,
         amount: 2000000,
         category: 'Bonus',
         description: 'Bonus Kinerja',
@@ -81,7 +81,7 @@ void main() {
     test('resetToSeed clears mutations back to seed', () {
       store.addTransaction(Transaction(
         id: 'tx-temp',
-        type: TransactionType.income,
+        direction: TransactionDirection.income,
         amount: 5000000,
         category: 'Lainnya',
         description: 'Temporary',

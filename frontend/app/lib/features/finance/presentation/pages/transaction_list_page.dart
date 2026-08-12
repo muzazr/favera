@@ -64,8 +64,8 @@ class TransactionListPage extends ConsumerWidget {
                     ref,
                     label: 'Semua',
                     isSelected: filter.category == 'Semua' &&
-                        filter.type == null &&
-                        filter.isAnomaly == null,
+                        filter.direction == null &&
+                        filter.attentionLevel == null,
                     onTap: () {
                       ref.read(transactionFilterProvider.notifier).state =
                           const TransactionListFilter(category: 'Semua');
@@ -76,12 +76,12 @@ class TransactionListPage extends ConsumerWidget {
                     context,
                     ref,
                     label: 'Pengeluaran',
-                    isSelected: filter.type == TransactionType.expense,
+                    isSelected: filter.direction == TransactionDirection.expense,
                     onTap: () {
                       ref.read(transactionFilterProvider.notifier).state =
-                          const TransactionListFilter(
+                          TransactionListFilter(
                         category: 'Semua',
-                        type: TransactionType.expense,
+                        direction: TransactionDirection.expense,
                       );
                     },
                   ),
@@ -90,12 +90,12 @@ class TransactionListPage extends ConsumerWidget {
                     context,
                     ref,
                     label: 'Pemasukan',
-                    isSelected: filter.type == TransactionType.income,
+                    isSelected: filter.direction == TransactionDirection.income,
                     onTap: () {
                       ref.read(transactionFilterProvider.notifier).state =
-                          const TransactionListFilter(
+                          TransactionListFilter(
                         category: 'Semua',
-                        type: TransactionType.income,
+                        direction: TransactionDirection.income,
                       );
                     },
                   ),
@@ -104,12 +104,13 @@ class TransactionListPage extends ConsumerWidget {
                     context,
                     ref,
                     label: 'Perlu Konfirmasi',
-                    isSelected: filter.isAnomaly == true,
+                    isSelected:
+                        filter.attentionLevel == 'needs_confirmation',
                     onTap: () {
                       ref.read(transactionFilterProvider.notifier).state =
                           const TransactionListFilter(
                         category: 'Semua',
-                        isAnomaly: true,
+                        attentionLevel: 'needs_confirmation',
                       );
                     },
                   ),
@@ -155,7 +156,7 @@ class TransactionListPage extends ConsumerWidget {
                       itemCount: transactions.length,
                       itemBuilder: (context, index) {
                         final tx = transactions[index];
-                        final isIncome = tx.type == TransactionType.income;
+                        final isIncome = tx.direction == TransactionDirection.income;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),

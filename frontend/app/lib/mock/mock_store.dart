@@ -75,7 +75,7 @@ class MockStore {
     // 2. Transactions
     final tx1 = Transaction(
       id: 'tx-001',
-      type: TransactionType.income,
+      direction: TransactionDirection.income,
       amount: 5500000,
       category: 'Gaji',
       description: 'Gaji Bulanan',
@@ -85,7 +85,7 @@ class MockStore {
     );
     final tx2 = Transaction(
       id: 'tx-002',
-      type: TransactionType.expense,
+      direction: TransactionDirection.expense,
       amount: 450000,
       category: 'Tagihan',
       description: 'Tagihan Listrik PLN',
@@ -95,7 +95,7 @@ class MockStore {
     );
     final tx3 = Transaction(
       id: 'tx-003',
-      type: TransactionType.expense,
+      direction: TransactionDirection.expense,
       amount: 150000,
       category: 'Belanja',
       description: 'Belanja Bulanan Supermarket',
@@ -299,7 +299,7 @@ class MockStore {
   int getTotalBalance() {
     int balance = 0;
     for (final tx in _transactions.values) {
-      if (tx.type == TransactionType.income) {
+      if (tx.direction == TransactionDirection.income) {
         balance += tx.amount;
       } else {
         balance -= tx.amount;
@@ -311,13 +311,13 @@ class MockStore {
 
   int getMonthlyIncome() {
     return _transactions.values
-        .where((t) => t.type == TransactionType.income)
+        .where((t) => t.direction == TransactionDirection.income)
         .fold(0, (sum, t) => sum + t.amount);
   }
 
   int getMonthlyExpense() {
     return _transactions.values
-        .where((t) => t.type == TransactionType.expense)
+        .where((t) => t.direction == TransactionDirection.expense)
         .fold(0, (sum, t) => sum + t.amount);
   }
 
@@ -449,7 +449,7 @@ class MockStore {
       if (draft.status != DraftStatus.deleted) {
         final tx = Transaction(
           id: 'tx-stm-${draft.id}',
-          type: TransactionType.expense,
+          direction: TransactionDirection.expense,
           amount: draft.amount,
           category: draft.category,
           description: draft.description,

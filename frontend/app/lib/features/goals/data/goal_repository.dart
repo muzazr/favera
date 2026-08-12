@@ -6,10 +6,14 @@ abstract class GoalRepository {
   Future<FinancialGoal> createGoal(FinancialGoal goal);
   Future<FinancialGoal> updateGoal(String id, Map<String, dynamic> updates);
   Future<bool> deleteGoal(String id);
-  Future<FinancialGoal> approveGoal(String id);
-  Future<FinancialGoal> addContribution(
+
+  /// [action]: 'approve' | 'reject'
+  Future<FinancialGoal> approveGoal(String id, {String action = 'approve'});
+
+  Future<GoalContribution> addContribution(
     String id, {
-    required String sourceName,
     required int amount,
+    String? transactionId,
+    String? note,
   });
 }

@@ -61,7 +61,7 @@ class TransactionDetailPage extends ConsumerWidget {
               );
             }
 
-            final isIncome = tx.type == TransactionType.income;
+            final isIncome = tx.direction == TransactionDirection.income;
 
             return SafeArea(
               child: SingleChildScrollView(

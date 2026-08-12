@@ -29,17 +29,16 @@ class AppConfig {
       _ => AppEnvironment.dev,
     };
 
-    // Default domain overrides for hybrid mode (as specified in FRONTEND_ARCHITECTURE.md)
     final defaultHybridOverrides = <DataDomain, DataSourceMode>{
       DataDomain.auth: DataSourceMode.remote,
       DataDomain.family: DataSourceMode.remote,
-      DataDomain.dashboard: DataSourceMode.remote,
+      DataDomain.dashboard: DataSourceMode.mock,
       DataDomain.transactions: DataSourceMode.remote,
       DataDomain.statementImport: DataSourceMode.remote,
-      DataDomain.checkIn: DataSourceMode.remote,
-      DataDomain.assessment: DataSourceMode.remote,
-      DataDomain.chat: DataSourceMode.remote,
-      DataDomain.goals: DataSourceMode.mock,
+      DataDomain.checkIn: DataSourceMode.mock,
+      DataDomain.assessment: DataSourceMode.mock,
+      DataDomain.chat: DataSourceMode.mock,
+      DataDomain.goals: DataSourceMode.remote,
       DataDomain.recovery: DataSourceMode.mock,
       DataDomain.commitments: DataSourceMode.mock,
       DataDomain.professionals: DataSourceMode.mock,

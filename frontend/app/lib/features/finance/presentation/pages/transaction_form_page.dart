@@ -16,7 +16,7 @@ class TransactionFormPage extends ConsumerStatefulWidget {
 }
 
 class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
-  TransactionType _type = TransactionType.expense;
+  TransactionDirection _type = TransactionDirection.expense;
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   String _selectedCategory = 'Belanja';
@@ -64,7 +64,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
     try {
       await ref.read(transactionListControllerProvider.notifier).addTransaction(
-            type: _type,
+            direction: _type,
             amount: amount,
             category: _selectedCategory,
             description: _descriptionController.text.trim().isNotEmpty
@@ -75,7 +75,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_type == TransactionType.income
+            content: Text(_type == TransactionDirection.income
                 ? 'Pemasukan berhasil dicatat!'
                 : 'Pengeluaran berhasil dicatat!'),
             backgroundColor: const Color(0xFF10B981),
@@ -100,7 +100,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isIncome = _type == TransactionType.income;
+    final isIncome = _type == TransactionDirection.income;
     final currentCategories = isIncome ? _incomeCategories : _expenseCategories;
 
     return AppGradientBackground(
@@ -155,7 +155,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _type = TransactionType.expense;
+                                    _type = TransactionDirection.expense;
                                     _selectedCategory = 'Belanja';
                                   });
                                 },
@@ -186,7 +186,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _type = TransactionType.income;
+                                    _type = TransactionDirection.income;
                                     _selectedCategory = 'Gaji Bulanan';
                                   });
                                 },

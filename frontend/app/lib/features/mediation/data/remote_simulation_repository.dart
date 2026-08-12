@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../core/api/api_client.dart';
-import '../../../core/errors/app_failure.dart';
+import '../../../core/errors/api_error_decoder.dart';
 import '../../../shared/models/simulation_model.dart';
 import 'simulation_repository.dart';
 
@@ -28,18 +28,7 @@ class RemoteSimulationRepository implements SimulationRepository {
       final data = response.data['data'] as Map<String, dynamic>;
       return ImpactSimulation.fromJson(data);
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      throw ApiErrorDecoder.decode(e);
     }
-  }
-
-  AppFailure _handleDioError(DioException e) {
-    final status = e.response?.statusCode;
-    final msg = e.response?.data?['message'] as String? ??
-        e.message ??
-        'Terjadi kesalahan server';
-    if (status == 401) return AuthFailure(message: msg);
-    if (status == 404) return NotFoundFailure(message: msg);
-    if (status == 400 || status == 422) return ValidationFailure(message: msg);
-    return NetworkFailure(message: msg);
   }
 }

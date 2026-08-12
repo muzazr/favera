@@ -46,18 +46,19 @@ void main() {
       expect(allGoals.length, greaterThan(1));
     });
 
-    test('addContribution updates goal currentAmount and contribution history',
+    test('addContribution returns GoalContribution and updates store',
         () async {
-      final updated = await repository.addContribution(
+      final contribution = await repository.addContribution(
         'goal-001',
-        sourceName: 'Tabungan Tambahan',
+        note: 'Tabungan Tambahan',
         amount: 1000000,
       );
 
-      expect(updated.currentAmount, equals(7000000));
-      expect(
-          updated.contributions.first.sourceName, equals('Tabungan Tambahan'));
-      expect(updated.contributions.first.amount, equals(1000000));
+      expect(contribution.amount, equals(1000000));
+      expect(contribution.sourceName, equals('Tabungan Tambahan'));
+
+      final goal = await repository.getGoalById('goal-001');
+      expect(goal!.currentAmount, equals(7000000));
     });
   });
 }

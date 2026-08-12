@@ -5,26 +5,33 @@ import '../data/transaction_repository_provider.dart';
 
 class TransactionListFilter {
   final String category;
-  final TransactionType? type;
-  final bool? isAnomaly;
+  final TransactionDirection? direction;
+  final String? attentionLevel;
 
   const TransactionListFilter({
     this.category = 'Semua',
-    this.type,
-    this.isAnomaly,
+    this.direction,
+    this.attentionLevel,
   });
 
   TransactionListFilter copyWith({
     String? category,
-    TransactionType? type,
-    bool? isAnomaly,
+    Object? direction = _sentinel,
+    Object? attentionLevel = _sentinel,
   }) {
     return TransactionListFilter(
       category: category ?? this.category,
-      type: type ?? this.type,
-      isAnomaly: isAnomaly ?? this.isAnomaly,
+      direction: direction == _sentinel
+          ? this.direction
+          : direction as TransactionDirection?,
+      attentionLevel: attentionLevel == _sentinel
+          ? this.attentionLevel
+          : attentionLevel as String?,
     );
   }
+
+  // Sentinel to distinguish null-clear from "not provided".
+  static const Object _sentinel = Object();
 }
 
 final transactionFilterProvider = StateProvider<TransactionListFilter>(
@@ -43,8 +50,8 @@ class TransactionListController extends AsyncNotifier<List<Transaction>> {
 
     return repository.getTransactions(
       category: filter.category,
-      type: filter.type,
-      isAnomaly: filter.isAnomaly,
+      direction: filter.direction,
+      attentionLevel: filter.attentionLevel,
     );
   }
 
@@ -55,14 +62,14 @@ class TransactionListController extends AsyncNotifier<List<Transaction>> {
       final filter = ref.read(transactionFilterProvider);
       return repository.getTransactions(
         category: filter.category,
-        type: filter.type,
-        isAnomaly: filter.isAnomaly,
+        direction: filter.direction,
+        attentionLevel: filter.attentionLevel,
       );
     });
   }
 
   Future<void> addTransaction({
-    required TransactionType type,
+    required TransactionDirection direction,
     required int amount,
     required String category,
     required String description,
@@ -70,7 +77,7 @@ class TransactionListController extends AsyncNotifier<List<Transaction>> {
     final repository = ref.read(transactionRepositoryProvider);
     final newTx = Transaction(
       id: 'tx-${DateTime.now().millisecondsSinceEpoch}',
-      type: type,
+      direction: direction,
       amount: amount,
       category: category,
       description: description,
@@ -80,7 +87,7 @@ class TransactionListController extends AsyncNotifier<List<Transaction>> {
 
     await repository.createTransaction(newTx);
 
-    // Invalidate dashboard and transaction list to refresh UI instantly
+    // Invalidate dashboard and transaction list to refresh UI
     ref.invalidate(dashboardControllerProvider);
     ref.invalidateSelf();
   }
