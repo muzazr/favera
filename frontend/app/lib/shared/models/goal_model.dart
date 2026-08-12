@@ -20,11 +20,29 @@ class GoalContribution {
   });
 
   factory GoalContribution.fromJson(Map<String, dynamic> json) {
+    DateTime parsedDate;
+    try {
+      final dateVal = json['contributed_at'] ??
+          json['date'] ??
+          json['created_at'] ??
+          json['transaction_at'];
+      if (dateVal is String) {
+        parsedDate = DateTime.parse(dateVal);
+      } else {
+        parsedDate = DateTime.now();
+      }
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+
     return GoalContribution(
-      id: json['id'] as String,
-      sourceName: json['source_name'] as String,
-      date: DateTime.parse(json['date'] as String),
-      amount: (json['amount'] as num).toInt(),
+      id: json['id']?.toString() ?? 'contrib-${DateTime.now().millisecondsSinceEpoch}',
+      sourceName: json['source']?.toString() ??
+          json['source_name']?.toString() ??
+          json['note']?.toString() ??
+          'Dari Saldo Bersama',
+      date: parsedDate,
+      amount: ((json['amount'] ?? json['nominal'] ?? 0) as num).toInt(),
     );
   }
 
