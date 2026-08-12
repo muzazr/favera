@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:app/app/router/app_router.dart';
 import 'package:app/app/router/route_names.dart';
 import 'package:app/app/theme/app_spacing.dart';
+import 'package:app/core/utils/uuid_utils.dart';
 import 'package:app/features/statements/application/statement_controller.dart';
 
 class StatementUploadModal extends ConsumerStatefulWidget {
@@ -42,6 +43,7 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'csv'],
+      withData: true,
     );
 
     if (result != null && result.files.isNotEmpty) {
@@ -56,49 +58,55 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
   }
 
   Future<void> _submit() async {
+    if (_pickedFile == null) return;
+
     setState(() => _isUploading = true);
 
-    final fileName = _pickedFile?.name ?? 'eStatement_GoPay_Juni2026.pdf';
-    // Read file bytes for real upload; fall back to empty bytes for demo.
-    final rawBytes = _pickedFile?.bytes;
-    final fileBytes = rawBytes != null
-        ? Uint8List.fromList(rawBytes)
-        : Uint8List(0);
+    final fileName = _pickedFile!.name;
+    final filePath = _pickedFile!.path;
+    Uint8List fileBytes = Uint8List(0);
+
+    if (_pickedFile!.bytes != null && _pickedFile!.bytes!.isNotEmpty) {
+      fileBytes = Uint8List.fromList(_pickedFile!.bytes!);
+    }
 
     try {
       final created = await ref
           .read(statementUploadControllerProvider.notifier)
           .uploadImport(
             fileBytes: fileBytes,
+            filePath: filePath,
             fileName: fileName,
             providerHint: _guessProviderHint(fileName),
             documentPassword: _requiresPassword &&
                     _passwordController.text.isNotEmpty
                 ? _passwordController.text.trim()
                 : null,
-            // documentPassword is cleared from memory when _passwordController is disposed.
           );
 
       if (created != null) {
-        // We MUST capture the review path before closing the modal,
-        // because after pop() this widget's context is invalid.
+        final importId = created.id.isNotEmpty
+            ? created.id
+            : UuidUtils.generateV4();
         final reviewPath =
-            AppRoutePaths.statementReview.replaceFirst(':id', created.id);
+            AppRoutePaths.statementReview.replaceFirst(':id', importId);
 
-        if (!mounted) return;
-
-        // Close modal via the root navigator (matches useRootNavigator: true).
-        Navigator.of(context, rootNavigator: true).pop();
-
-        // Navigate using rootNavigatorKey which is always alive, bypassing
-        // the stale modal context that would cause a silent no-op.
-        rootNavigatorKey.currentContext?.push(reviewPath);
+        // Use rootNavigatorKey entirely — avoids BuildContext across async gaps.
+        final rootState = rootNavigatorKey.currentState;
+        final rootCtx = rootNavigatorKey.currentContext;
+        if (rootState != null) {
+          rootState.pop(); // close modal
+        }
+        if (rootCtx != null && rootCtx.mounted) {
+          GoRouter.of(rootCtx).push(reviewPath);
+        }
       }
     } catch (e) {
       if (mounted) {
+        final errorMsg = (e as dynamic).message ?? e.toString();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gagal memproses e-Statement: $e'),
+            content: Text('Gagal memproses e-Statement: $errorMsg'),
             backgroundColor: Colors.red,
           ),
         );
@@ -123,6 +131,8 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
 
   @override
   Widget build(BuildContext context) {
+    final canSubmit = _pickedFile != null && !_isUploading;
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -315,10 +325,12 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: _isUploading ? null : _submit,
+              onPressed: canSubmit ? _submit : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
+                disabledBackgroundColor: const Color(0xFFE5E7EB),
                 foregroundColor: Colors.white,
+                disabledForegroundColor: const Color(0xFF9CA3AF),
                 shape: const StadiumBorder(),
                 elevation: 0,
               ),

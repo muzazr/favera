@@ -26,7 +26,11 @@ class AuthTokenStorage {
   }
 
   Future<void> clearTokens() async {
-    await _storage.delete(key: _accessTokenKey);
-    await _storage.delete(key: _refreshTokenKey);
+    try {
+      await _storage.deleteAll();
+    } catch (_) {
+      await _storage.delete(key: _accessTokenKey);
+      await _storage.delete(key: _refreshTokenKey);
+    }
   }
 }

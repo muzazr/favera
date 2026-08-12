@@ -54,6 +54,24 @@ class MediationHubPage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
+              // Card 0: Ruang Pemulihan Bersama (Modul 8 & 9)
+              _buildMediationCard(
+                context: context,
+                assetPath: '',
+                fallbackIcon: Icons.handshake_rounded,
+                iconBgColor: const Color(0xFFEEF2FF),
+                title: 'Ruang Pemulihan & Komitmen Bersama',
+                description:
+                    'Mediasi terpandu saat terjadi konflik emosional atau finansial, serta penyusunan komitmen bersama pasangan.',
+                buttonText: 'Buka Pemulihan ➔',
+                buttonBgColor: const Color(0xFFE0E7FF),
+                buttonTextColor: const Color(0xFF4338CA),
+                onTap: () {
+                  context.push(AppRoutePaths.recoverySessions);
+                },
+              ),
+              const SizedBox(height: 16),
+
               // Card 1: Konselor AI Empatik
               _buildMediationCard(
                 context: context,

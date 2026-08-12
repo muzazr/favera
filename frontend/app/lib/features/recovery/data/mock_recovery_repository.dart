@@ -51,7 +51,6 @@ class MockRecoveryRepository implements RecoveryRepository {
 
     if (level == ReadinessLevel.unsafe) {
       final updated = session.copyWith(
-        readinessLevel: level,
         status: RecoverySessionStatus.mediationRecommended,
         updatedAt: DateTime.now(),
       );
@@ -59,7 +58,6 @@ class MockRecoveryRepository implements RecoveryRepository {
     }
 
     final updated = session.copyWith(
-      readinessLevel: level,
       status: RecoverySessionStatus.privateReflection,
       updatedAt: DateTime.now(),
     );
@@ -75,7 +73,14 @@ class MockRecoveryRepository implements RecoveryRepository {
     await latency.delay();
     final session = mockStore.getRecoverySession(sessionId);
     final updated = session.copyWith(
-      privateReflection: reflection,
+      myPrivateReflection: PrivateReflection(
+        facts: reflection,
+        impact: '',
+        feelings: '',
+        needs: '',
+        expectations: '',
+      ),
+      status: RecoverySessionStatus.waitingForPartner,
       updatedAt: DateTime.now(),
     );
     return mockStore.updateRecoverySession(updated);
@@ -90,7 +95,7 @@ class MockRecoveryRepository implements RecoveryRepository {
     await latency.delay();
     final session = mockStore.getRecoverySession(sessionId);
     final updated = session.copyWith(
-      publishedStatement: statement,
+      mySharedStatement: statement,
       status: RecoverySessionStatus.waitingForPartner,
       updatedAt: DateTime.now(),
     );
@@ -103,7 +108,7 @@ class MockRecoveryRepository implements RecoveryRepository {
     await latency.delay();
     final session = mockStore.getRecoverySession(sessionId);
     final updated = session.copyWith(
-      partnerResponseText:
+      partnerSharedStatement:
           'Saya memahami kekhawatiranmu. Mari kita atur alokasi hiburan maksimal Rp 1.5M/bulan dan sisanya kita prioritaskan ke tabungan rumah.',
       alignmentSummary:
           'Kedua pihak sepakat membatasi anggaran hiburan bulanan dan mengalokasikan sisa pendapatan untuk tabungan darurat & rumah.',

@@ -332,7 +332,7 @@ class RecoveryListPage extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      sess.topic,
+                                      sess.topic.displayLabel,
                                       style: const TextStyle(
                                         fontSize: 12,
                                         color: Color(0xFF6B7280),
@@ -536,13 +536,19 @@ class RecoveryListPage extends ConsumerWidget {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: () async {
+                    final titleText = titleCtrl.text.trim();
+                    final topicText = selectedTopic;
+                    // Close modal first so user can see loading on list page
                     Navigator.pop(ctx);
                     final session = await ref
                         .read(recoveryControllerProvider.notifier)
                         .createSession(
-                          title: titleCtrl.text.trim(),
-                          topic: selectedTopic,
+                          title: titleText,
+                          topic: topicText,
                         );
+                    // Explicitly refresh the list regardless of result
+                    // ignore: invalid_use_of_internal_member
+                    ref.invalidate(recoverySessionListProvider);
                     if (session != null && context.mounted) {
                       context.push('/app/mediation/recovery/${session.id}');
                     }

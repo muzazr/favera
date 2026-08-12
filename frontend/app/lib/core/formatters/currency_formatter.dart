@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 abstract final class CurrencyFormatter {
@@ -30,5 +31,33 @@ abstract final class CurrencyFormatter {
     final digitsOnly = text.replaceAll(RegExp(r'[^\d]'), '');
     if (digitsOnly.isEmpty) return 0;
     return int.tryParse(digitsOnly) ?? 0;
+  }
+}
+
+/// Real-time thousand separator input formatter for Indonesian Rupiah
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  static final NumberFormat _decimalFormatter = NumberFormat.decimalPattern('id_ID');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+    if (digitsOnly.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final number = int.tryParse(digitsOnly) ?? 0;
+    final formattedText = _decimalFormatter.format(number);
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
   }
 }

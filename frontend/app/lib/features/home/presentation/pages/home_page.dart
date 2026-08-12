@@ -252,12 +252,23 @@ class HomePage extends ConsumerWidget {
                         ),
                         const SizedBox(height: AppSpacing.s12),
 
-                        // 3 Horizontal Cards (Tanya AI, Konseling Digital, Simulasi Finansial)
+                        // Horizontal Cards (Ruang Pemulihan, Tanya AI, Konseling Digital, Simulasi Finansial)
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              // Card 1: Tanya AI
+                              // Card 1: Ruang Pemulihan (Modul 8 & 9)
+                              _buildHelpCenterCard(
+                                backgroundColor: const Color(0xFFEEF2FF),
+                                iconPath: AppAssets.aiEmpatikLogo,
+                                title: 'Ruang\nPemulihan',
+                                subtitle: 'Mediasi & Komitmen',
+                                onTap: () =>
+                                    context.push(AppRoutePaths.recoverySessions),
+                              ),
+                              const SizedBox(width: 12),
+
+                              // Card 2: Tanya AI
                               _buildHelpCenterCard(
                                 backgroundColor: const Color(0xFFFFFBEB),
                                 iconPath: AppAssets.robotAi,
@@ -268,7 +279,7 @@ class HomePage extends ConsumerWidget {
                               ),
                               const SizedBox(width: 12),
 
-                              // Card 2: Konseling Digital
+                              // Card 3: Konseling Digital
                               _buildHelpCenterCard(
                                 backgroundColor: const Color(0xFFEFF6FF),
                                 iconPath: AppAssets.counselingService,
@@ -279,14 +290,100 @@ class HomePage extends ConsumerWidget {
                               ),
                               const SizedBox(width: 12),
 
-                              // Card 3: Simulasi Finansial
+                              // Card 4: Simulasi Finansial
                               _buildHelpCenterCard(
                                 backgroundColor: const Color(0xFFFFF1F2),
                                 iconPath: AppAssets.simulationFinance,
                                 title: 'Simulasi\nFinansial',
-                                subtitle: 'Dampak...',
+                                subtitle: 'Proyeksi realita',
                                 onTap: () =>
                                     context.push(AppRoutePaths.simulationNew),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.s16),
+
+                        // Prominent Soft Light Blue Banner for Modul 8 (Ruang Pemulihan) & Modul 9 (Komitmen Bersama)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: const Color(0xFFBFDBFE),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFDBEAFE),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.handshake_rounded,
+                                  color: Color(0xFF2563EB),
+                                  size: 22,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Ruang Pemulihan & Komitmen',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E3A8A),
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Sesi mediasi netral & komitmen bersama',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF3B82F6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () =>
+                                    context.push(AppRoutePaths.recoverySessions),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2563EB),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: const StadiumBorder(),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 8,
+                                  ),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'Buka ➔',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ),
                             ],
                           ),

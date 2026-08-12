@@ -75,6 +75,7 @@ class StatementUploadController
 
   void _startPolling(String importId) {
     _stopPolling();
+    if (importId.trim().isEmpty) return;
     _pollTimer = Timer.periodic(_pollInterval, (_) async {
       if (!mounted) {
         _stopPolling();
@@ -102,6 +103,7 @@ class StatementUploadController
 
   Future<StatementImport?> uploadImport({
     required Uint8List fileBytes,
+    String? filePath,
     required String fileName,
     required String providerHint,
     String? documentPassword,
@@ -111,6 +113,7 @@ class StatementUploadController
       final repo = ref.read(statementRepositoryProvider);
       final created = await repo.createStatementImport(
         fileBytes: fileBytes,
+        filePath: filePath,
         fileName: fileName,
         providerHint: providerHint,
         documentPassword: documentPassword,
@@ -127,7 +130,7 @@ class StatementUploadController
       return created;
     } catch (e, st) {
       state = AsyncValue.error(e, st);
-      return null;
+      rethrow;
     }
   }
 

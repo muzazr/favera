@@ -77,6 +77,14 @@ class RouteStateNotifier extends StateNotifier<RouteState> {
   void setFamilyPaired(bool val) {
     state = state.copyWith(familyPaired: val);
   }
+
+  Future<void> resetState() async {
+    state = RouteState.initial();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+    } catch (_) {}
+  }
 }
 
 final routeStateProvider =

@@ -1,3 +1,5 @@
+import '../../core/utils/uuid_utils.dart';
+
 enum StatementImportStatus {
   uploaded,
   passwordRequired,
@@ -40,16 +42,63 @@ class StatementImport {
   });
 
   factory StatementImport.fromJson(Map<String, dynamic> json) {
+    String rawId = json['id']?.toString() ??
+        json['import_id']?.toString() ??
+        json['statement_import_id']?.toString() ??
+        json['statementImportId']?.toString() ??
+        json['importId']?.toString() ??
+        json['_id']?.toString() ??
+        json['statement_id']?.toString() ??
+        json['id_statement']?.toString() ??
+        '';
+
+    if (rawId.isEmpty) {
+      // Check nested map if any (import_session, statement_import, import, data, result)
+      final nested = json['import_session'] ??
+          json['statement_import'] ??
+          json['import'] ??
+          json['data'] ??
+          json['result'];
+      if (nested is Map<String, dynamic>) {
+        rawId = nested['id']?.toString() ??
+            nested['import_id']?.toString() ??
+            nested['statement_import_id']?.toString() ??
+            nested['statementImportId']?.toString() ??
+            nested['importId']?.toString() ??
+            '';
+      }
+    }
+
+    if (rawId.isEmpty) {
+      rawId = UuidUtils.generateV4();
+    }
+
+    final rawFileName = json['file_name'] ??
+        json['filename'] ??
+        json['name'] ??
+        'e-statement.pdf';
+    final rawFileSize =
+        json['file_size_bytes'] ?? json['file_size'] ?? json['size'] ?? 0;
+    final rawStatus = json['status'] as String? ?? 'review_required';
+    final rawProvider =
+        json['provider_hint'] ?? json['provider'] ?? json['bank'] ?? 'other';
+    final rawUploadedAt = json['uploaded_at'] ??
+        json['created_at'] ??
+        json['uploaded'] ??
+        DateTime.now().toIso8601String();
+
     return StatementImport(
-      id: json['id'] as String,
-      fileName: json['file_name'] as String,
-      fileSizeBytes: (json['file_size_bytes'] as num).toInt(),
-      status: _parseStatus(json['status'] as String),
-      providerHint: json['provider_hint'] as String? ?? 'mandiri',
+      id: rawId,
+      fileName: rawFileName as String,
+      fileSizeBytes: (rawFileSize as num).toInt(),
+      status: _parseStatus(rawStatus),
+      providerHint: rawProvider as String,
       requiresPassword: json['requires_password'] as bool? ?? false,
       totalDetected: (json['total_detected'] as num? ?? 0).toInt(),
       needsReviewCount: (json['needs_review_count'] as num? ?? 0).toInt(),
-      uploadedAt: DateTime.parse(json['uploaded_at'] as String),
+      uploadedAt: rawUploadedAt is String
+          ? DateTime.tryParse(rawUploadedAt) ?? DateTime.now()
+          : DateTime.now(),
       errorMessage: json['error_message'] as String?,
     );
   }
@@ -156,18 +205,43 @@ class ParsedTransactionDraft {
   });
 
   factory ParsedTransactionDraft.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id']?.toString() ??
+        json['draft_id']?.toString() ??
+        json['_id']?.toString() ??
+        UuidUtils.generateV4();
+    final rawImportId = json['import_id']?.toString() ??
+        json['statement_import_id']?.toString() ??
+        json['importId']?.toString() ??
+        '';
+
+    DateTime parsedDate;
+    try {
+      final dateVal = json['transaction_at'] ??
+          json['date'] ??
+          json['transaction_date'] ??
+          json['created_at'];
+      if (dateVal is String) {
+        parsedDate = DateTime.parse(dateVal);
+      } else {
+        parsedDate = DateTime.now();
+      }
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+
     return ParsedTransactionDraft(
-      id: json['id'] as String,
-      importId: json['import_id'] as String,
-      date: DateTime.parse(json['date'] as String),
-      description: json['description'] as String,
-      amount: (json['amount'] as num).toInt(),
-      category: json['category'] as String,
+      id: rawId,
+      importId: rawImportId,
+      date: parsedDate,
+      description: (json['description'] ?? json['narrative'] ?? json['title'] ?? 'Transaksi')
+          .toString(),
+      amount: ((json['amount'] ?? json['nominal'] ?? 0) as num).toInt(),
+      category: (json['category'] ?? json['pos'] ?? 'Lainnya').toString(),
       status: DraftStatus.values.firstWhere(
         (e) => e.name == json['status'],
         orElse: () => DraftStatus.pending,
       ),
-      anomalyReason: json['anomaly_reason'] as String?,
+      anomalyReason: json['anomaly_reason']?.toString() ?? json['flag_reason']?.toString(),
     );
   }
 

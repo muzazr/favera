@@ -225,12 +225,16 @@ class MockStore {
     // 6. Seed Recovery Sessions & Commitments
     final rec1 = RecoverySession(
       id: 'rec-demo-001',
-      title: 'Diskusi Anggaran Hiburan & Tabungan Rumah',
-      topic: 'Pengelolaan Anggaran Bulanan',
+      topic: RecoveryTopic.unfulfilledCommitment,
+      customTopic: 'Diskusi Anggaran Hiburan & Tabungan Rumah',
       status: RecoverySessionStatus.readinessCheck,
-      readinessLevel: ReadinessLevel.ready,
-      privateReflection:
-          'Saya merasa perlu lebih terbuka mengenai pos pengeluaran gaya hidup agar kita bisa capai target tabungan rumah bersama.',
+      myPrivateReflection: const PrivateReflection(
+        facts: 'Saya merasa perlu lebih terbuka mengenai pos pengeluaran gaya hidup.',
+        impact: 'Kami kesulitan mencapai target tabungan rumah bersama.',
+        feelings: 'Saya merasa cemas dan kurang transparan.',
+        needs: 'Komunikasi terbuka dan anggaran yang disepakati.',
+        expectations: 'Kita bisa capai target tabungan rumah bersama.',
+      ),
       createdAt: clock.now().subtract(const Duration(days: 2)),
       updatedAt: clock.now().subtract(const Duration(hours: 1)),
     );
@@ -538,14 +542,42 @@ class MockStore {
           createdAt: clock.now(),
         );
 
+    final isHighStress = emotion.toLowerCase() == 'cemas' ||
+        emotion.toLowerCase() == 'stres' ||
+        concern.toLowerCase().contains('utang') ||
+        concern.toLowerCase().contains('konflik');
+
     chk = chk.copyWith(
       myEmotion: emotion,
       mainConcern: concern,
       status: CheckInStatus.completed,
-      sharedSummary:
-          'Keuangan bulan ini stabil dan komunikasi dari Check-In mingguan menunjukkan tingkat stres yang rendah. Pertahankan ritme ini!',
+      sharedSummary: isHighStress
+          ? 'Terdapat perhatian khusus mengenai $concern dengan kondisi emosional $emotion. Perlunya komunikasi tenang tanpa saling menyalahkan.'
+          : 'Keuangan dan emosi pasangan stabil dengan perhatian utama pada $concern. Pertahankan ritme ini!',
     );
     _checkIns[checkInId] = chk;
+
+    // Dynamically generate Family Assessment based on Check-In response
+    final assessmentLevel = isHighStress
+        ? AssessmentLevel.needsAttention
+        : AssessmentLevel.stable;
+
+    final summary = isHighStress
+        ? 'Terdeteksi peningkatan tekanan emosi ($emotion) terkait fokus $concern. Direkomendasikan melakukan alokasi ulang pos atau mediasi netral.'
+        : 'Kondisi emosi keluarga terpantau $emotion. Alokasi pengeluaran $concern terpantau aman dan selaras.';
+
+    final action = isHighStress
+        ? 'Jadwalkan sesi evaluasi pos $concern secara terbuka dan manfaatkan fitur Ruang Pemulihan Bersama.'
+        : 'Pertahankan komitmen tabungan bulanan dan rutin lakukan check-in mingguan.';
+
+    _assessments['asm-001'] = FamilyAssessment(
+      id: 'asm-001',
+      level: assessmentLevel,
+      summaryText: summary,
+      recommendedAction: action,
+      createdAt: clock.now(),
+    );
+
     return chk;
   }
 
@@ -685,20 +717,36 @@ class MockStore {
     return _recoverySessions[id] ??
         RecoverySession(
           id: id,
-          title: 'Diskusi Anggaran Hiburan & Tabungan Rumah',
-          topic: 'Pengelolaan Anggaran Bulanan',
+          topic: RecoveryTopic.unfulfilledCommitment,
+          customTopic: 'Diskusi Anggaran & Komitmen Finansial',
           status: RecoverySessionStatus.readinessCheck,
-          readinessLevel: ReadinessLevel.ready,
           createdAt: clock.now(),
           updatedAt: clock.now(),
         );
   }
 
   RecoverySession createRecoverySession(String title, String topic) {
+    // Map display topic string to nearest enum value
+    RecoveryTopic topicEnum = RecoveryTopic.other;
+    final lower = topic.toLowerCase();
+    if (lower.contains('anggaran') || lower.contains('budget') || lower.contains('komitmen')) {
+      topicEnum = RecoveryTopic.unfulfilledCommitment;
+    } else if (lower.contains('komunikasi')) {
+      topicEnum = RecoveryTopic.communicationConflict;
+    } else if (lower.contains('tabungan') || lower.contains('target')) {
+      topicEnum = RecoveryTopic.unfulfilledCommitment;
+    } else if (lower.contains('utang')) {
+      topicEnum = RecoveryTopic.hiddenDebt;
+    } else if (lower.contains('transaksi')) {
+      topicEnum = RecoveryTopic.unknownTransaction;
+    } else if (lower.contains('dana')) {
+      topicEnum = RecoveryTopic.essentialFundsUsage;
+    }
+
     final session = RecoverySession(
       id: 'rec-${DateTime.now().millisecondsSinceEpoch}',
-      title: title,
-      topic: topic,
+      topic: topicEnum,
+      customTopic: title.isNotEmpty ? title : null,
       status: RecoverySessionStatus.readinessCheck,
       createdAt: clock.now(),
       updatedAt: clock.now(),

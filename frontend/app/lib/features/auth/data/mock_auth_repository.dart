@@ -84,12 +84,6 @@ class MockAuthRepository implements AuthRepository {
       createdAt: DateTime.now(),
     );
 
-    mockStore.currentUser = newUser;
-    await tokenStorage.saveTokens(
-      accessToken: 'mock_access_token_${newUser.id}',
-      refreshToken: 'mock_refresh_token_${newUser.id}',
-    );
-
     return newUser;
   }
 
@@ -97,7 +91,7 @@ class MockAuthRepository implements AuthRepository {
   Future<void> logout() async {
     errorPolicy.checkAndThrow();
     await latency.delay();
-    mockStore.currentUser = null;
+    mockStore.resetToSeed();
     await tokenStorage.clearTokens();
   }
 

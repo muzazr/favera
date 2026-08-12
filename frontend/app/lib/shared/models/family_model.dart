@@ -12,6 +12,7 @@ class FamilySpace {
   final String primaryUserId;
   final String? partnerUserId;
   final String? partnerName;
+  final List<FamilyMember> members;
   final bool shareFinancialSummary;
   final bool shareCheckInSummary;
   final DateTime createdAt;
@@ -24,6 +25,7 @@ class FamilySpace {
     required this.primaryUserId,
     this.partnerUserId,
     this.partnerName,
+    this.members = const [],
     this.shareFinancialSummary = true,
     this.shareCheckInSummary = true,
     required this.createdAt,
@@ -68,6 +70,7 @@ class FamilySpace {
       primaryUserId: primaryId,
       partnerUserId: partnerId,
       partnerName: partnerNm,
+      members: parsedMembers,
       shareFinancialSummary: (json['share_financial_summary'] as bool?) ?? true,
       shareCheckInSummary: (json['share_check_in_summary'] as bool?) ?? true,
       createdAt: json['created_at'] != null
@@ -79,7 +82,35 @@ class FamilySpace {
     );
   }
 
+  String getPartnerNameFor(String? currentUserId) {
+    if (members.isNotEmpty && currentUserId != null && currentUserId.isNotEmpty) {
+      final others = members.where((m) => m.userId != currentUserId);
+      if (others.isNotEmpty && others.first.displayName.isNotEmpty) {
+        return others.first.displayName;
+      }
+    }
+    return partnerName ?? 'Pasangan';
+  }
+
   bool get isPaired => status == FamilyStatus.active;
+
+  /// Returns a clean human-readable ID formatted as FAM-XXXXXX
+  String get displayId {
+    if (inviteCode != null && inviteCode!.trim().isNotEmpty) {
+      final code = inviteCode!.trim();
+      if (code.toUpperCase().startsWith('FAM-')) return code.toUpperCase();
+      return 'FAM-$code';
+    }
+    if (id.isNotEmpty) {
+      if (id.toUpperCase().startsWith('FAM-')) return id.toUpperCase();
+      final cleanId = id.replaceAll('-', '').toUpperCase();
+      if (cleanId.length >= 6) {
+        return 'FAM-${cleanId.substring(0, 6)}';
+      }
+      return 'FAM-$cleanId';
+    }
+    return 'FAM-882194';
+  }
 
   Map<String, dynamic> toJson() {
     return {

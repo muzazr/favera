@@ -92,7 +92,6 @@ class AuthController extends AsyncNotifier<User?> {
         password: password,
         privacyConsent: privacyConsent,
       );
-      await _repository.logout();
       state = const AsyncValue.data(null);
       _syncRouteState(null);
       return true;
@@ -104,8 +103,21 @@ class AuthController extends AsyncNotifier<User?> {
 
   Future<void> logout() async {
     state = const AsyncValue.loading();
+
+    // 1. Call repository logout & wipe secure tokens
     await _repository.logout();
-    // Invalidate all cached user-scoped data to prevent stale state on next login
+
+    // 2. Wipe MockStore state if active
+    try {
+      ref.read(mockStoreProvider).resetToSeed();
+    } catch (_) {}
+
+    // 3. Reset RouteStateNotifier and clear SharedPreferences
+    try {
+      await ref.read(routeStateProvider.notifier).resetState();
+    } catch (_) {}
+
+    // 4. Invalidate all cached user-scoped data to prevent stale state on next login
     ref.invalidate(dashboardControllerProvider);
     ref.invalidate(familyControllerProvider);
     ref.invalidate(familyInvitationsProvider);
@@ -115,8 +127,8 @@ class AuthController extends AsyncNotifier<User?> {
     ref.invalidate(goalListControllerProvider);
     ref.invalidate(chatSessionsProvider);
     ref.invalidate(recoverySessionListProvider);
+
     state = const AsyncValue.data(null);
-    _syncRouteState(null);
   }
 
   Future<void> forgotPassword(String email) async {

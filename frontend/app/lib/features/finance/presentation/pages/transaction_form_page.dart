@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app/app/theme/app_spacing.dart';
+import 'package:app/core/formatters/currency_formatter.dart';
 import 'package:app/core/widgets/app_gradient_background.dart';
 import 'package:app/features/finance/application/transaction_controller.dart';
 import 'package:app/shared/models/transaction_model.dart';
@@ -229,8 +230,15 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                           border: Border.all(
                             color: isIncome
                                 ? const Color(0xFFA7F3D0)
-                                : Colors.transparent,
+                                : const Color(0xFFE5E7EB),
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,27 +256,51 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            TextField(
-                              controller: _amountController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF111827),
-                              ),
-                              decoration: const InputDecoration(
-                                prefixText: 'Rp ',
-                                prefixStyle: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF111827),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Rp ',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: isIncome
+                                        ? const Color(0xFF059669)
+                                        : const Color(0xFF111827),
+                                  ),
                                 ),
-                                border: InputBorder.none,
-                                hintText: '5.500.000',
-                              ),
+                                Expanded(
+                                  child: TextField(
+                                    controller: _amountController,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      ThousandsSeparatorInputFormatter(),
+                                    ],
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w800,
+                                      color: isIncome
+                                          ? const Color(0xFF059669)
+                                          : const Color(0xFF111827),
+                                    ),
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                      hintText: '5.500.000',
+                                      hintStyle: TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.w800,
+                                        color: isIncome
+                                            ? const Color(0xFF059669)
+                                                .withValues(alpha: 0.35)
+                                            : const Color(0xFF9CA3AF),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -299,23 +331,38 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                                 _selectedCategory = name;
                               });
                             },
-                            child: Container(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
+                                  horizontal: 14, vertical: 10),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? const Color(0xFF10B981)
                                     : const Color(0xFFF3F4F6),
                                 borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? const Color(0xFF059669)
+                                      : const Color(0xFFE5E7EB),
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(
-                                    icon,
-                                    style: const TextStyle(fontSize: 14),
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? Colors.white.withValues(alpha: 0.25)
+                                          : const Color(0xFFE5E7EB),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      icon,
+                                      style: const TextStyle(fontSize: 15),
+                                    ),
                                   ),
-                                  const SizedBox(width: 6),
+                                  const SizedBox(width: 8),
                                   Text(
                                     name,
                                     style: TextStyle(

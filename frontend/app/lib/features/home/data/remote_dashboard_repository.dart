@@ -75,12 +75,14 @@ class RemoteDashboardRepository implements DashboardRepository {
       } catch (_) {}
 
       String userName = 'Pengguna';
+      String currentUserId = '';
       String? partnerName;
       FamilyStatus familyStatus = FamilyStatus.active;
 
       try {
         final userResp = await apiClient.dio.get('/me');
         final userData = _extractData(userResp.data);
+        currentUserId = userData['id'] as String? ?? '';
         userName = userData['display_name'] as String? ??
             userData['name'] as String? ??
             userData['email'] as String? ??
@@ -88,11 +90,13 @@ class RemoteDashboardRepository implements DashboardRepository {
       } catch (_) {}
 
       try {
-        final famResp = await apiClient.dio.get('/families/current');
+        final famResp = await apiClient.dio.get('/family');
         final famData = _extractData(famResp.data);
-        familyStatus = _parseFamilyStatus(famData['status'] as String?);
-        partnerName = famData['partner_name'] as String? ??
-            famData['partner_email'] as String?;
+        if (famData.isNotEmpty) {
+          final familySpace = FamilySpace.fromJson(famData);
+          familyStatus = familySpace.status;
+          partnerName = familySpace.getPartnerNameFor(currentUserId);
+        }
       } catch (_) {}
 
       FinancialGoal? activeGoal;

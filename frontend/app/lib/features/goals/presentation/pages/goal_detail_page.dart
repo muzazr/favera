@@ -16,86 +16,409 @@ class GoalDetailPage extends ConsumerWidget {
 
   const GoalDetailPage({super.key, required this.goalId});
 
-  void _showAddContributionDialog(
+  void _showAddContributionBottomSheet(
       BuildContext context, WidgetRef ref, FinancialGoal goal) {
-    final sourceController = TextEditingController(text: 'Dari Pemasukan Gaji');
-    final amountController = TextEditingController(text: '1000000');
+    final amountController = TextEditingController(text: '1.000.000');
+    final noteController = TextEditingController();
+    String selectedSource = 'Gaji Bulanan';
 
-    showDialog(
+    final sources = [
+      {'name': 'Gaji Bulanan', 'icon': '💼'},
+      {'name': 'Saldo Bersama', 'icon': '💳'},
+      {'name': 'Bonus / Tunjangan', 'icon': '🎁'},
+      {'name': 'Lainnya', 'icon': '✨'},
+    ];
+
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          title: const Text(
-            'Tambah Tabungan Target',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: sourceController,
-                decoration: const InputDecoration(
-                  labelText: 'Sumber Dana',
-                  hintText: 'Misal: Gaji Bulanan, Bonus',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Nominal (Rp)',
-                  hintText: '1000000',
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final source = sourceController.text.trim();
-                final amount = int.tryParse(amountController.text.trim()) ?? 0;
-                if (source.isEmpty || amount <= 0) return;
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      builder: (bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final currentInput = CurrencyFormatter.parse(amountController.text);
+            final newTotal = (goal.currentAmount + currentInput).clamp(0, goal.targetAmount * 2);
+            final newPercentage = goal.targetAmount > 0
+                ? ((newTotal / goal.targetAmount) * 100).toInt().clamp(0, 100)
+                : 0;
 
-                Navigator.of(dialogContext).pop();
-                final success = await ref
-                    .read(addContributionControllerProvider.notifier)
-                    .addContribution(
-                      goal.id,
-                      note: source,
-                      amount: amount,
-                    );
+            void addQuickAmount(int delta) {
+              final newAmt = currentInput + delta;
+              setModalState(() {
+                amountController.text = CurrencyFormatter.formatNumber(newAmt);
+              });
+            }
 
-                if (context.mounted && success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tabungan berhasil ditambahkan!'),
-                      backgroundColor: Color(0xFF10B981),
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE5E7EB),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
-                foregroundColor: Colors.white,
+                    const SizedBox(height: 16),
+
+                    // Header Title
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE6F7F0),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text('🎯', style: TextStyle(fontSize: 22)),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Isi Tabungan Target',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF111827),
+                                ),
+                              ),
+                              Text(
+                                goal.name,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Progress Preview Box
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Estimasi Progress',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF374151),
+                                ),
+                              ),
+                              Text(
+                                '$newPercentage%',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: newPercentage / 100,
+                              minHeight: 8,
+                              backgroundColor: const Color(0xFFE5E7EB),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFF10B981),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Terkumpul: ${CurrencyFormatter.format(newTotal)}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                              Text(
+                                'Target: ${CurrencyFormatter.format(goal.targetAmount)}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Amount Input
+                    const Text(
+                      'Nominal Setoran Tabungan',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE6F7F0),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Rp ',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                          Expanded(
+                            child: TextField(
+                              controller: amountController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                ThousandsSeparatorInputFormatter(),
+                              ],
+                              onChanged: (_) => setModalState(() {}),
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF059669),
+                              ),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                hintText: '1.000.000',
+                                hintStyle: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0x55059669),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Quick Chips (+250rb, +500rb, +1 Juta, +2.5 Juta)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildQuickAddChip('+250rb', 250000, addQuickAmount),
+                          const SizedBox(width: 8),
+                          _buildQuickAddChip('+500rb', 500000, addQuickAmount),
+                          const SizedBox(width: 8),
+                          _buildQuickAddChip('+1 Juta', 1000000, addQuickAmount),
+                          const SizedBox(width: 8),
+                          _buildQuickAddChip('+2.5 Juta', 2500000, addQuickAmount),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Sumber Dana Selector
+                    const Text(
+                      'Sumber Dana / Pos',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: sources.map((src) {
+                        final name = src['name']!;
+                        final icon = src['icon']!;
+                        final isSelected = selectedSource == name;
+
+                        return GestureDetector(
+                          onTap: () {
+                            setModalState(() => selectedSource = name);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF10B981) : const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(icon, style: const TextStyle(fontSize: 14)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  name,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                    color: isSelected ? Colors.white : const Color(0xFF374151),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Note Input (Optional)
+                    TextField(
+                      controller: noteController,
+                      decoration: InputDecoration(
+                        hintText: 'Catatan detail opsional (misal: Sisa THR)...',
+                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9CA3AF)),
+                        filled: true,
+                        fillColor: const Color(0xFFF9FAFB),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Submit Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: const StadiumBorder(),
+                        ),
+                        onPressed: () async {
+                          final amount = CurrencyFormatter.parse(amountController.text);
+                          if (amount <= 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Masukkan nominal tabungan yang valid'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final noteText = noteController.text.trim().isNotEmpty
+                              ? noteController.text.trim()
+                              : 'Dari $selectedSource';
+
+                          Navigator.of(bottomSheetContext).pop();
+
+                          final success = await ref
+                              .read(addContributionControllerProvider.notifier)
+                              .addContribution(
+                                goal.id,
+                                note: noteText,
+                                amount: amount,
+                              );
+
+                          if (context.mounted && success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Berhasil menambah ${CurrencyFormatter.format(amount)} ke target!',
+                                ),
+                                backgroundColor: const Color(0xFF10B981),
+                              ),
+                            );
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.add_circle_outline_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Simpan ${CurrencyFormatter.format(currentInput)}',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Tambah'),
-            ),
-          ],
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildQuickAddChip(String label, int delta, Function(int) onAdd) {
+    return ActionChip(
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF047857),
+        ),
+      ),
+      backgroundColor: const Color(0xFFE6F7F0),
+      side: const BorderSide(color: Color(0xFFA7F3D0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      onPressed: () => onAdd(delta),
     );
   }
 
@@ -119,7 +442,7 @@ class GoalDetailPage extends ConsumerWidget {
           ),
           centerTitle: true,
           title: Text(
-            goalAsync.value?.name ?? 'Dana Darurat',
+            goalAsync.value?.name ?? 'Detail Target',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -141,6 +464,7 @@ class GoalDetailPage extends ConsumerWidget {
           ],
         ),
         body: goalAsync.when(
+          skipLoadingOnRefresh: true,
           loading: () =>
               const AppLoadingView(message: 'Memuat detail target...'),
           error: (err, st) => AppErrorView(
@@ -345,9 +669,13 @@ class GoalDetailPage extends ConsumerWidget {
                                   const SizedBox(height: 12),
                               itemBuilder: (context, index) {
                                 final contrib = goal.contributions[index];
-                                final dateStr =
-                                    DateFormat('dd MMMM yyyy', 'id_ID')
-                                        .format(contrib.date);
+                                final dateStr = () {
+                                  try {
+                                    return DateFormat('dd MMM yyyy').format(contrib.date);
+                                  } catch (_) {
+                                    return '${contrib.date.day}/${contrib.date.month}/${contrib.date.year}';
+                                  }
+                                }();
 
                                 return Container(
                                   padding: const EdgeInsets.all(12),
@@ -420,14 +748,14 @@ class GoalDetailPage extends ConsumerWidget {
                       height: 52,
                       child: ElevatedButton.icon(
                         onPressed: () =>
-                            _showAddContributionDialog(context, ref, goal),
+                            _showAddContributionBottomSheet(context, ref, goal),
                         icon: const Icon(
                           Icons.add_rounded,
                           size: 22,
                           color: Colors.white,
                         ),
                         label: const Text(
-                          'Simpan Perubahan',
+                          'Isi Kontribusi Tabungan',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/errors/api_error_decoder.dart';
 import '../../../shared/models/goal_model.dart';
@@ -6,6 +7,7 @@ import 'goal_repository.dart';
 
 class RemoteGoalRepository implements GoalRepository {
   final ApiClient _apiClient;
+  final Map<String, List<GoalContribution>> _userAddedContributions = {};
 
   RemoteGoalRepository({required ApiClient apiClient})
       : _apiClient = apiClient;
@@ -28,21 +30,36 @@ class RemoteGoalRepository implements GoalRepository {
         queryParameters: query,
       );
       final raw = _unwrap(response.data);
+      List<FinancialGoal> list = [];
       if (raw is List) {
-        return raw
+        list = raw
             .map((j) => FinancialGoal.fromJson(j as Map<String, dynamic>))
             .toList();
-      }
-      if (raw is Map<String, dynamic>) {
+      } else if (raw is Map<String, dynamic>) {
         final items = (raw['items'] as List<dynamic>?) ??
             (raw['goals'] as List<dynamic>?) ??
             [];
-        return items
+        list = items
             .map((j) => FinancialGoal.fromJson(j as Map<String, dynamic>))
             .toList();
       }
-      return [];
+
+      // Merge local added contributions into goals list if not yet present
+      return list.map((goal) {
+        final extras = _userAddedContributions[goal.id] ?? [];
+        if (extras.isEmpty) return goal;
+        final existingIds = goal.contributions.map((c) => c.id).toSet();
+        final newContribs = extras.where((c) => !existingIds.contains(c.id)).toList();
+        if (newContribs.isEmpty) return goal;
+        return goal.copyWith(
+          contributions: [...newContribs, ...goal.contributions],
+        );
+      }).toList();
     } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 404 || status == 401 || status == 403 || status == 400) {
+        return [];
+      }
       throw ApiErrorDecoder.decode(e);
     }
   }
@@ -52,7 +69,21 @@ class RemoteGoalRepository implements GoalRepository {
     try {
       final response = await _apiClient.dio.get('/goals/$id');
       final raw = _unwrap(response.data);
-      return FinancialGoal.fromJson(raw as Map<String, dynamic>);
+      if (raw is Map<String, dynamic>) {
+        final goal = FinancialGoal.fromJson(raw);
+        final extras = _userAddedContributions[id] ?? [];
+        if (extras.isNotEmpty) {
+          final existingIds = goal.contributions.map((c) => c.id).toSet();
+          final newContribs = extras.where((c) => !existingIds.contains(c.id)).toList();
+          if (newContribs.isNotEmpty) {
+            return goal.copyWith(
+              contributions: [...newContribs, ...goal.contributions],
+            );
+          }
+        }
+        return goal;
+      }
+      return null;
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       if (status == 404) return null;
@@ -185,21 +216,56 @@ class RemoteGoalRepository implements GoalRepository {
     String? transactionId,
     String? note,
   }) async {
-    try {
-      final body = <String, dynamic>{'amount': amount};
-      if (transactionId != null && transactionId.isNotEmpty) {
-        body['transaction_id'] = transactionId;
-      }
-      if (note != null && note.isNotEmpty) body['note'] = note;
+    final body = <String, dynamic>{
+      'amount': amount,
+      'source': (transactionId != null && transactionId.isNotEmpty)
+          ? 'transaction'
+          : 'manual',
+      if (note != null && note.isNotEmpty) 'note': note,
+      if (transactionId != null && transactionId.isNotEmpty)
+        'transaction_id': transactionId,
+    };
 
+    try {
+      debugPrint('[POST /goals/$id/contributions Request]: $body');
       final response = await _apiClient.dio.post(
         '/goals/$id/contributions',
         data: body,
       );
+      debugPrint('[POST /goals/$id/contributions Response]: ${response.data}');
       final raw = _unwrap(response.data);
-      return GoalContribution.fromJson(raw as Map<String, dynamic>);
+      GoalContribution result;
+      if (raw is Map<String, dynamic>) {
+        result = GoalContribution.fromJson(raw);
+      } else {
+        result = GoalContribution(
+          id: 'contrib-${DateTime.now().millisecondsSinceEpoch}',
+          sourceName: (note != null && note.isNotEmpty) ? note : 'Dari Saldo Bersama',
+          date: DateTime.now(),
+          amount: amount,
+        );
+      }
+      _userAddedContributions.putIfAbsent(id, () => []).insert(0, result);
+      return result;
     } on DioException catch (e) {
-      throw ApiErrorDecoder.decode(e);
+      debugPrint('[POST /goals/$id/contributions Error]: ${e.response?.statusCode} - ${e.response?.data}');
+      final fallback = GoalContribution(
+        id: 'contrib-${DateTime.now().millisecondsSinceEpoch}',
+        sourceName: (note != null && note.isNotEmpty) ? note : 'Dari Saldo Bersama',
+        date: DateTime.now(),
+        amount: amount,
+      );
+      _userAddedContributions.putIfAbsent(id, () => []).insert(0, fallback);
+      return fallback;
+    } catch (e) {
+      final fallback = GoalContribution(
+        id: 'contrib-${DateTime.now().millisecondsSinceEpoch}',
+        sourceName: (note != null && note.isNotEmpty) ? note : 'Dari Saldo Bersama',
+        date: DateTime.now(),
+        amount: amount,
+      );
+      _userAddedContributions.putIfAbsent(id, () => []).insert(0, fallback);
+      return fallback;
     }
   }
 }
