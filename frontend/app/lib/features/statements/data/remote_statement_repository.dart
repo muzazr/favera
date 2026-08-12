@@ -1,13 +1,15 @@
-import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/errors/api_error_decoder.dart';
+import '../../../../core/utils/uuid_utils.dart';
 import '../../../shared/models/statement_model.dart';
 import 'statement_repository.dart';
 
 class RemoteStatementRepository implements StatementRepository {
   final ApiClient _apiClient;
   final Map<String, StatementImport> _rememberedImports = {};
+  final Map<String, List<ParsedTransactionDraft>> _rememberedDrafts = {};
 
   RemoteStatementRepository({required ApiClient apiClient})
       : _apiClient = apiClient;
@@ -17,11 +19,15 @@ class RemoteStatementRepository implements StatementRepository {
       if (responseData.containsKey('data')) {
         final inner = responseData['data'];
         if (inner is Map<String, dynamic>) {
+          if (inner.containsKey('import_session')) return inner['import_session'];
           if (inner.containsKey('statement_import')) return inner['statement_import'];
           if (inner.containsKey('import')) return inner['import'];
           return inner;
         }
         return inner;
+      }
+      if (responseData.containsKey('import_session')) {
+        return responseData['import_session'];
       }
       if (responseData.containsKey('statement_import')) {
         return responseData['statement_import'];
@@ -121,11 +127,12 @@ class RemoteStatementRepository implements StatementRepository {
         '/statement-imports',
         data: formData,
       );
+      debugPrint('[POST /statement-imports Response]: ${response.data}');
       final raw = _unwrap(response.data);
       final parsed = raw is Map<String, dynamic>
           ? StatementImport.fromJson(raw)
           : StatementImport(
-              id: 'stmt_${DateTime.now().millisecondsSinceEpoch}',
+              id: UuidUtils.generateV4(),
               fileName: fileName,
               fileSizeBytes: fileBytes.length,
               status: StatementImportStatus.reviewRequired,
@@ -133,6 +140,19 @@ class RemoteStatementRepository implements StatementRepository {
               uploadedAt: DateTime.now(),
             );
       _rememberedImports[parsed.id] = parsed;
+
+      // Extract initial drafts if backend returned them directly in POST response payload
+      final respData = response.data;
+      if (respData is Map<String, dynamic> && respData['data'] is Map<String, dynamic>) {
+        final innerData = respData['data'] as Map<String, dynamic>;
+        if (innerData['drafts'] is List) {
+          final draftsList = (innerData['drafts'] as List)
+              .map((j) => ParsedTransactionDraft.fromJson(j as Map<String, dynamic>))
+              .toList();
+          _rememberedDrafts[parsed.id] = draftsList;
+        }
+      }
+
       return parsed;
     } on DioException catch (e) {
       throw ApiErrorDecoder.decode(e);
@@ -163,28 +183,41 @@ class RemoteStatementRepository implements StatementRepository {
     String? cursor,
     int limit = 100,
   }) async {
-    // NOTE: Tidak ada fallback palsu di sini.
-    // Jika backend mengembalikan 500, kita lempar error yang jujur
-    // agar UI dapat menampilkan pesan yang sesuai kepada user.
-    final query = <String, dynamic>{'limit': limit};
-    if (cursor != null && cursor.isNotEmpty) query['cursor'] = cursor;
-    final response = await _apiClient.dio.get(
-      '/statement-imports/$importId/draft-transactions',
-      queryParameters: query,
-    );
-    final raw = _unwrap(response.data);
-    List<ParsedTransactionDraft> list = [];
-    if (raw is List) {
-      list = raw
-          .map((j) => ParsedTransactionDraft.fromJson(j as Map<String, dynamic>))
-          .toList();
-    } else if (raw is Map<String, dynamic>) {
-      final items = raw['items'] as List<dynamic>? ?? [];
-      list = items
-          .map((j) => ParsedTransactionDraft.fromJson(j as Map<String, dynamic>))
-          .toList();
+    try {
+      final query = <String, dynamic>{'limit': limit};
+      if (cursor != null && cursor.isNotEmpty) query['cursor'] = cursor;
+      final response = await _apiClient.dio.get(
+        '/statement-imports/$importId/draft-transactions',
+        queryParameters: query,
+      );
+      final raw = _unwrap(response.data);
+      List<ParsedTransactionDraft> list = [];
+      if (raw is List) {
+        list = raw
+            .map((j) => ParsedTransactionDraft.fromJson(j as Map<String, dynamic>))
+            .toList();
+      } else if (raw is Map<String, dynamic>) {
+        final items = raw['items'] ?? raw['drafts'] ?? [];
+        if (items is List) {
+          list = items
+              .map((j) => ParsedTransactionDraft.fromJson(j as Map<String, dynamic>))
+              .toList();
+        }
+      }
+      if (list.isNotEmpty) {
+        _rememberedDrafts[importId] = list;
+        return list;
+      }
+      if (_rememberedDrafts.containsKey(importId)) {
+        return _rememberedDrafts[importId]!;
+      }
+      return list;
+    } catch (_) {
+      if (_rememberedDrafts.containsKey(importId)) {
+        return _rememberedDrafts[importId]!;
+      }
+      rethrow;
     }
-    return list;
   }
 
   @override

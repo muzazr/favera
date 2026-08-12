@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:app/app/router/app_router.dart';
 import 'package:app/app/router/route_names.dart';
 import 'package:app/app/theme/app_spacing.dart';
+import 'package:app/core/utils/uuid_utils.dart';
 import 'package:app/features/statements/application/statement_controller.dart';
 
 class StatementUploadModal extends ConsumerStatefulWidget {
@@ -86,7 +87,7 @@ class _StatementUploadModalState extends ConsumerState<StatementUploadModal> {
       if (created != null) {
         final importId = created.id.isNotEmpty
             ? created.id
-            : 'stmt_${DateTime.now().millisecondsSinceEpoch}';
+            : UuidUtils.generateV4();
         final reviewPath =
             AppRoutePaths.statementReview.replaceFirst(':id', importId);
 

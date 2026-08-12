@@ -1,3 +1,5 @@
+import '../../core/utils/uuid_utils.dart';
+
 enum StatementImportStatus {
   uploaded,
   passwordRequired,
@@ -40,28 +42,35 @@ class StatementImport {
   });
 
   factory StatementImport.fromJson(Map<String, dynamic> json) {
-    String rawId = json['id'] as String? ??
-        json['import_id'] as String? ??
-        json['statement_import_id'] as String? ??
-        json['statementImportId'] as String? ??
-        json['importId'] as String? ??
-        json['_id'] as String? ??
-        json['statement_id'] as String? ??
+    String rawId = json['id']?.toString() ??
+        json['import_id']?.toString() ??
+        json['statement_import_id']?.toString() ??
+        json['statementImportId']?.toString() ??
+        json['importId']?.toString() ??
+        json['_id']?.toString() ??
+        json['statement_id']?.toString() ??
+        json['id_statement']?.toString() ??
         '';
 
     if (rawId.isEmpty) {
-      // Check nested map if any
-      final nested = json['statement_import'] ?? json['import'] ?? json['data'];
+      // Check nested map if any (import_session, statement_import, import, data, result)
+      final nested = json['import_session'] ??
+          json['statement_import'] ??
+          json['import'] ??
+          json['data'] ??
+          json['result'];
       if (nested is Map<String, dynamic>) {
-        rawId = nested['id'] as String? ??
-            nested['import_id'] as String? ??
-            nested['statement_import_id'] as String? ??
+        rawId = nested['id']?.toString() ??
+            nested['import_id']?.toString() ??
+            nested['statement_import_id']?.toString() ??
+            nested['statementImportId']?.toString() ??
+            nested['importId']?.toString() ??
             '';
       }
     }
 
     if (rawId.isEmpty) {
-      rawId = 'stmt_${DateTime.now().millisecondsSinceEpoch}';
+      rawId = UuidUtils.generateV4();
     }
 
     final rawFileName = json['file_name'] ??
@@ -196,18 +205,43 @@ class ParsedTransactionDraft {
   });
 
   factory ParsedTransactionDraft.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id']?.toString() ??
+        json['draft_id']?.toString() ??
+        json['_id']?.toString() ??
+        UuidUtils.generateV4();
+    final rawImportId = json['import_id']?.toString() ??
+        json['statement_import_id']?.toString() ??
+        json['importId']?.toString() ??
+        '';
+
+    DateTime parsedDate;
+    try {
+      final dateVal = json['transaction_at'] ??
+          json['date'] ??
+          json['transaction_date'] ??
+          json['created_at'];
+      if (dateVal is String) {
+        parsedDate = DateTime.parse(dateVal);
+      } else {
+        parsedDate = DateTime.now();
+      }
+    } catch (_) {
+      parsedDate = DateTime.now();
+    }
+
     return ParsedTransactionDraft(
-      id: json['id'] as String,
-      importId: json['import_id'] as String,
-      date: DateTime.parse(json['date'] as String),
-      description: json['description'] as String,
-      amount: (json['amount'] as num).toInt(),
-      category: json['category'] as String,
+      id: rawId,
+      importId: rawImportId,
+      date: parsedDate,
+      description: (json['description'] ?? json['narrative'] ?? json['title'] ?? 'Transaksi')
+          .toString(),
+      amount: ((json['amount'] ?? json['nominal'] ?? 0) as num).toInt(),
+      category: (json['category'] ?? json['pos'] ?? 'Lainnya').toString(),
       status: DraftStatus.values.firstWhere(
         (e) => e.name == json['status'],
         orElse: () => DraftStatus.pending,
       ),
-      anomalyReason: json['anomaly_reason'] as String?,
+      anomalyReason: json['anomaly_reason']?.toString() ?? json['flag_reason']?.toString(),
     );
   }
 
