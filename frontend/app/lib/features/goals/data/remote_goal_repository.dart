@@ -33,13 +33,15 @@ class RemoteGoalRepository implements GoalRepository {
             .map((j) => FinancialGoal.fromJson(j as Map<String, dynamic>))
             .toList();
       }
-      // Handle paginated response shape { items: [...] }
-      final items = (raw as Map<String, dynamic>)['items'] as List<dynamic>? ??
-          (raw['goals'] as List<dynamic>?) ??
-          [];
-      return items
-          .map((j) => FinancialGoal.fromJson(j as Map<String, dynamic>))
-          .toList();
+      if (raw is Map<String, dynamic>) {
+        final items = (raw['items'] as List<dynamic>?) ??
+            (raw['goals'] as List<dynamic>?) ??
+            [];
+        return items
+            .map((j) => FinancialGoal.fromJson(j as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
     } on DioException catch (e) {
       throw ApiErrorDecoder.decode(e);
     }
@@ -58,24 +60,74 @@ class RemoteGoalRepository implements GoalRepository {
     }
   }
 
+  String _mapSchemeToApi(String scheme) {
+    switch (scheme) {
+      case 'Dari Saldo Bersama':
+      case 'shared_balance':
+        return 'shared_balance';
+      case 'Patungan Proporsional':
+      case 'proportional':
+        return 'proportional';
+      default:
+        return 'manual';
+    }
+  }
+
+  String _mapPriorityToApi(String priority) {
+    switch (priority) {
+      case 'Sangat Penting':
+      case 'very_important':
+        return 'very_important';
+      case 'Fleksibel':
+      case 'flexible':
+        return 'flexible';
+      case 'Penting':
+      case 'important':
+      default:
+        return 'important';
+    }
+  }
+
+  String? _mapDeadlineToApi(String deadline) {
+    if (deadline.isEmpty) return null;
+    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(deadline)) {
+      return deadline;
+    }
+    final parts = deadline.split(' ');
+    if (parts.length == 2) {
+      final monthName = parts[0];
+      final yearStr = parts[1];
+      const months = {
+        'Januari': '01',
+        'Februari': '02',
+        'Maret': '03',
+        'April': '04',
+        'Mei': '05',
+        'Juni': '06',
+        'Juli': '07',
+        'Agustus': '08',
+        'September': '09',
+        'Oktober': '10',
+        'November': '11',
+        'Desember': '12',
+      };
+      final m = months[monthName] ?? '12';
+      return '$yearStr-$m-01';
+    }
+    return null;
+  }
+
   @override
   Future<FinancialGoal> createGoal(FinancialGoal goal) async {
     try {
-      final scheme = (goal.contributionScheme == 'manual' ||
-              goal.contributionScheme == 'shared_balance' ||
-              goal.contributionScheme == 'proportional')
-          ? goal.contributionScheme
-          : 'manual';
-      final prio = (goal.priority == 'very_important' ||
-              goal.priority == 'important' ||
-              goal.priority == 'flexible')
-          ? goal.priority
-          : 'important';
+      final scheme = _mapSchemeToApi(goal.contributionScheme);
+      final prio = _mapPriorityToApi(goal.priority);
+      final formattedDeadline = _mapDeadlineToApi(goal.deadline);
 
       final body = <String, dynamic>{
         'name': goal.name,
         'target_amount': goal.targetAmount,
-        if (goal.deadline.isNotEmpty) 'deadline': goal.deadline,
+        if (formattedDeadline != null) 'deadline': formattedDeadline,
         if (goal.themeIcon.isNotEmpty) 'theme': goal.themeIcon,
         'contribution_scheme': scheme,
         'priority': prio,
