@@ -45,20 +45,22 @@ class Professional {
 
   factory Professional.fromJson(Map<String, dynamic> json) {
     return Professional(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      category: json['category'] as String,
-      specialization: json['specialization'] as String,
-      city: json['city'] as String,
-      externalUrl: json['external_url'] as String?,
+      id: json['id'] as String? ?? 'prof-${DateTime.now().millisecondsSinceEpoch}',
+      name: json['name'] as String? ?? json['full_name'] as String? ?? 'Konselor Profesional',
+      category: json['category'] as String? ?? json['type'] as String? ?? 'psikolog',
+      specialization: json['specialization'] as String? ??
+          json['title'] as String? ??
+          'Psikolog & Konselor Pernikahan',
+      city: json['city'] as String? ?? json['location'] as String? ?? 'Jakarta',
+      externalUrl: json['external_url'] as String? ?? json['url'] as String?,
       rating: (json['rating'] as num? ?? 4.9).toDouble(),
-      reviewsCount: (json['reviews_count'] as num? ?? 120).toInt(),
+      reviewsCount: (json['reviews_count'] as num? ?? json['review_count'] as num? ?? 120).toInt(),
       isVerified: json['is_verified'] as bool? ?? true,
-      experienceYears: (json['experience_years'] as num? ?? 8).toInt(),
-      schedule: json['schedule'] as String? ?? 'Selasa - Sabtu (09:00 - 15:00)',
-      bio: json['bio'] as String?,
-      whatsappUrl: json['whatsapp_url'] as String?,
-      instagramUrl: json['instagram_url'] as String?,
+      experienceYears: (json['experience_years'] as num? ?? json['experience'] as num? ?? 8).toInt(),
+      schedule: json['schedule'] as String? ?? json['work_hours'] as String? ?? 'Selasa - Sabtu (09:00 - 15:00)',
+      bio: json['bio'] as String? ?? json['description'] as String?,
+      whatsappUrl: json['whatsapp_url'] as String? ?? json['whatsapp'] as String? ?? json['phone_number'] as String?,
+      instagramUrl: json['instagram_url'] as String? ?? json['instagram'] as String?,
       specialties: (json['specialties'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??

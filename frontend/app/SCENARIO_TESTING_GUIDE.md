@@ -1,4 +1,4 @@
-# Panduan Pengujian Skenario Aplikasi Favera (Part 1 - 10)
+# Panduan Pengujian Skenario Aplikasi Favera (Part 1 - 12)
 
 Dokumen ini berisi panduan langkah demi langkah untuk menguji perjalanan pengguna (*user journey*) lengkap aplikasi **Favera** dari proses Registrasi/Auth (Part 1) hingga Komitmen Bersama (Part 10).
 
@@ -100,3 +100,20 @@ Fase ini menguji proses mediasi terpandu jika terdeteksi isu keuangan, refleksi 
     - Klik **Buat Komitmen Baru**, isi judul komitmen (misal: *Membatasi Makan Luar Rp 500rb/bulan*) dan deskripsinya.
     - Pasangan akan melihat draf komitmen tersebut. Klik **Setujui Komitmen** (approve).
     - Status komitmen akan berubah menjadi **Aktif** dan akan muncul di beranda utama untuk dilacak progress pencapaiannya (0% - 100%).
+
+---
+
+### 💬 Fase 6: Chat Empati AI & Konseling Profesional (Part 11 - 12)
+Fase ini menguji chatbot empati AI pendeteksi tensi finansial dan direktori konseling profesional.
+
+12. **Chat Empati AI (Part 11)**:
+    - Buka menu **Tanya AI** di Beranda.
+    - Tekan **Mulai Sesi Chat Baru**.
+    - Kirim pesan (misal: *Bagaimana cara membagi pengeluaran makan kami?*). Chatbot akan menjawab secara empatik.
+    - Coba kirim pesan dengan tensi tinggi (misal: *Saya stres dan bertengkar hebat dengan pasangan saya karena utang*). AI akan mendeteksi tingkat ketegangan tinggi, mengaktifkan `safety_level` khusus, dan menampilkan banner merah rekomendasi bantuan profesional secara netral.
+13. **Mencari Konselor Finansial & Mediator (Part 12)**:
+    - Buka menu **Konseling Digital** di Beranda.
+    - Gunakan Filter Chips di bagian atas (misal: *Psikolog Pernikahan*, *Konselor Finansial*) untuk menyaring daftar ahli yang sesuai.
+    - Klik salah satu profil ahli (misal: *Siti Rahma, M.Psi.*).
+    - Anda dapat melihat detail keahlian, tarif, jadwal tersedia, serta tautan langsung untuk menghubungi ahli secara eksternal.
+

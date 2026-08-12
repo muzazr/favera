@@ -24,6 +24,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   final _textController = TextEditingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
+  final List<ChatMessage> _optimisticMessages = [];
 
   final List<String> _suggestedActionChips = [
     'Bingung Mengenai Judol',
@@ -59,7 +60,18 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       _textController.clear();
     }
 
-    setState(() => _isSending = true);
+    final userMsg = ChatMessage(
+      id: 'opt-${DateTime.now().millisecondsSinceEpoch}',
+      sessionId: widget.sessionId,
+      sender: MessageSender.user,
+      content: text,
+      timestamp: DateTime.now(),
+    );
+
+    setState(() {
+      _optimisticMessages.add(userMsg);
+      _isSending = true;
+    });
     _scrollToBottom();
 
     try {
@@ -70,7 +82,9 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
       _scrollToBottom();
     } finally {
       if (mounted) {
-        setState(() => _isSending = false);
+        setState(() {
+          _isSending = false;
+        });
       }
     }
   }
@@ -78,6 +92,22 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   @override
   Widget build(BuildContext context) {
     final messagesAsync = ref.watch(chatMessagesProvider(widget.sessionId));
+    final serverMessages = messagesAsync.valueOrNull ?? const [];
+
+    // Clean up optimistic messages that are now confirmed in serverMessages
+    _optimisticMessages.removeWhere((opt) => serverMessages.any(
+        (m) => m.content == opt.content && m.sender == MessageSender.user));
+
+    final combinedMessages = List<ChatMessage>.from(serverMessages);
+    for (final opt in _optimisticMessages) {
+      if (!combinedMessages.any(
+          (m) => m.content == opt.content && m.sender == MessageSender.user)) {
+        combinedMessages.add(opt);
+      }
+    }
+
+    final isLoadingInitial = messagesAsync.isLoading && combinedMessages.isEmpty;
+    final hasErrorInitial = messagesAsync.hasError && combinedMessages.isEmpty;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -175,15 +205,19 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
         children: [
           // Scrollable Chat Message List
           Expanded(
-            child: messagesAsync.when(
-              loading: () =>
-                  const AppLoadingView(message: 'Memuat histori percakapan...'),
-              error: (err, st) => AppErrorView(
-                message: err.toString(),
-                onRetry: () =>
-                    ref.invalidate(chatMessagesProvider(widget.sessionId)),
-              ),
-              data: (messages) {
+            child: Builder(
+              builder: (context) {
+                if (isLoadingInitial) {
+                  return const AppLoadingView(message: 'Memuat histori percakapan...');
+                }
+                if (hasErrorInitial) {
+                  return AppErrorView(
+                    message: messagesAsync.error.toString(),
+                    onRetry: () =>
+                        ref.invalidate(chatMessagesProvider(widget.sessionId)),
+                  );
+                }
+
                 return ListView(
                   controller: _scrollController,
                   padding:
@@ -220,7 +254,7 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                     ),
 
                     // Render Messages
-                    ...messages.map((msg) => _buildMessageBubble(msg)),
+                    ...combinedMessages.map((msg) => _buildMessageBubble(msg)),
 
                     // Assistant Loading Indicator Bubble
                     if (_isSending) ...[
@@ -319,13 +353,14 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                 // Input TextField Pill Container
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF9FAFB),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(color: const Color(0xFFE5E7EB)),
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // Left '+' attachment icon
                         const Icon(
@@ -335,25 +370,33 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
                         ),
                         const SizedBox(width: 8),
 
-                        // Text Input
+                        // Text Input (Multiline Auto-expanding)
                         Expanded(
-                          child: TextField(
-                            controller: _textController,
-                            onSubmitted: (_) => _handleSend(),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF111827),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxHeight: 120,
                             ),
-                            decoration: const InputDecoration(
-                              hintText: 'Ketik pesan...',
-                              hintStyle: TextStyle(
+                            child: TextField(
+                              controller: _textController,
+                              minLines: 1,
+                              maxLines: 5,
+                              keyboardType: TextInputType.multiline,
+                              textInputAction: TextInputAction.newline,
+                              style: const TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF9CA3AF),
+                                color: Color(0xFF111827),
                               ),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding:
-                                  EdgeInsets.symmetric(vertical: 10),
+                              decoration: const InputDecoration(
+                                hintText: 'Ketik pesan...',
+                                hintStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF9CA3AF),
+                                ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding:
+                                    EdgeInsets.symmetric(vertical: 8),
+                              ),
                             ),
                           ),
                         ),
