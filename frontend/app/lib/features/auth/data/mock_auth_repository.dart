@@ -84,12 +84,6 @@ class MockAuthRepository implements AuthRepository {
       createdAt: DateTime.now(),
     );
 
-    mockStore.currentUser = newUser;
-    await tokenStorage.saveTokens(
-      accessToken: 'mock_access_token_${newUser.id}',
-      refreshToken: 'mock_refresh_token_${newUser.id}',
-    );
-
     return newUser;
   }
 

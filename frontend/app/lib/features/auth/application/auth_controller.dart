@@ -86,14 +86,14 @@ class AuthController extends AsyncNotifier<User?> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      final user = await _repository.register(
+      await _repository.register(
         name: name,
         email: email,
         password: password,
         privacyConsent: privacyConsent,
       );
-      state = AsyncValue.data(user);
-      _syncRouteState(user);
+      state = const AsyncValue.data(null);
+      _syncRouteState(null);
       return true;
     } catch (e, st) {
       state = AsyncValue.error(e, st);

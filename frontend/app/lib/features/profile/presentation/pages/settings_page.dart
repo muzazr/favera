@@ -23,7 +23,7 @@ class SettingsPage extends ConsumerWidget {
     final isPaired = familySpace != null && familySpace.isPaired;
     final String displayInviteCode;
     if (isPaired) {
-      displayInviteCode = familySpace.inviteCode ?? 'TERHUBUNG';
+      displayInviteCode = familySpace.displayId;
     } else {
       displayInviteCode = ref.watch(myInviteCodeProvider).value ?? 'Memuat...';
     }

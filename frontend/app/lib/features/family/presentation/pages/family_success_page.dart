@@ -15,7 +15,7 @@ class FamilySuccessPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final familySpace = ref.watch(familyControllerProvider).value;
     final user = ref.watch(authControllerProvider).value;
-    final displayCode = familySpace?.inviteCode ?? 'TERHUBUNG';
+    final displayCode = familySpace?.displayId ?? 'FAM-882194';
     final partnerName = familySpace?.getPartnerNameFor(user?.id) ?? 'Pasangan';
     final displayNameText = '${user?.name ?? 'Anda'} & $partnerName';
 

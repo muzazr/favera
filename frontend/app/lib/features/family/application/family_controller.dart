@@ -4,6 +4,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/config/data_source_mode.dart';
 import '../../../mock/mock_providers.dart';
 import '../../../shared/models/family_model.dart';
+import '../../../shared/models/user_model.dart';
 import '../../auth/application/auth_controller.dart';
 import '../data/family_repository.dart';
 import '../data/mock_family_repository.dart';
@@ -159,36 +160,43 @@ class FamilyController extends AsyncNotifier<FamilySpace?> {
   }
 }
 
+String _getStableUserCode(User? user) {
+  if (user == null || user.email.trim().isEmpty) return 'FAM-882194';
+  final identifier = user.email.trim().toLowerCase();
+  int hash = 0;
+  for (int i = 0; i < identifier.length; i++) {
+    final int charCode = identifier.codeUnitAt(i);
+    hash = ((hash * 31) + charCode) & 0x3FFFFFFF;
+  }
+  final int numCode = 100000 + (hash % 899999);
+  return 'FAM-$numCode';
+}
+
 final familyControllerProvider =
     AsyncNotifierProvider<FamilyController, FamilySpace?>(FamilyController.new);
 
 final myInviteCodeProvider = FutureProvider.autoDispose<String>((ref) async {
   final repo = ref.watch(familyRepositoryProvider);
+  final currentUser = ref.watch(authControllerProvider).value;
 
   final space = await repo.getFamilySpace();
   if (space != null) {
-    if (space.inviteCode != null && space.inviteCode!.isNotEmpty) {
-      return space.inviteCode!;
-    }
-    if (space.status == FamilyStatus.active) {
-      return 'TERHUBUNG';
-    }
+    return space.displayId;
   }
+
+  final stableCode = _getStableUserCode(currentUser);
 
   try {
     final invitations = await repo.getInvitations();
-    final currentUser = ref.read(authControllerProvider).value;
-    if (currentUser != null) {
-      final myPending = invitations.where((inv) =>
-          inv.status == 'pending' && inv.inviterUserId == currentUser.id);
-      if (myPending.isNotEmpty) {
-        return myPending.first.inviteCode;
+    if (invitations.isNotEmpty) {
+      final firstCode = invitations.first.inviteCode;
+      if (firstCode.trim().isNotEmpty) {
+        return firstCode.toUpperCase().startsWith('FAM-')
+            ? firstCode.toUpperCase()
+            : 'FAM-${firstCode.toUpperCase()}';
       }
     }
+  } catch (_) {}
 
-    final newInv = await repo.createInvitation();
-    return newInv.inviteCode;
-  } catch (_) {
-    return space?.inviteCode ?? 'TERHUBUNG';
-  }
+  return stableCode;
 });

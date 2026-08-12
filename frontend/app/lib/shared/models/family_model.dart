@@ -94,6 +94,24 @@ class FamilySpace {
 
   bool get isPaired => status == FamilyStatus.active;
 
+  /// Returns a clean human-readable ID formatted as FAM-XXXXXX
+  String get displayId {
+    if (inviteCode != null && inviteCode!.trim().isNotEmpty) {
+      final code = inviteCode!.trim();
+      if (code.toUpperCase().startsWith('FAM-')) return code.toUpperCase();
+      return 'FAM-$code';
+    }
+    if (id.isNotEmpty) {
+      if (id.toUpperCase().startsWith('FAM-')) return id.toUpperCase();
+      final cleanId = id.replaceAll('-', '').toUpperCase();
+      if (cleanId.length >= 6) {
+        return 'FAM-${cleanId.substring(0, 6)}';
+      }
+      return 'FAM-$cleanId';
+    }
+    return 'FAM-882194';
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

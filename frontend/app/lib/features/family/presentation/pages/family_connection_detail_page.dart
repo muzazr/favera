@@ -18,7 +18,7 @@ class FamilyConnectionDetailPage extends ConsumerWidget {
 
     final partnerName =
         familySpace?.getPartnerNameFor(user?.id) ?? 'Pasangan';
-    final partnerId = familySpace?.inviteCode ?? 'TERHUBUNG';
+    final partnerId = familySpace?.displayId ?? 'FAM-882194';
 
     return AppGradientBackground(
       child: Scaffold(

@@ -51,6 +51,10 @@ class RemoteTransactionRepository implements TransactionRepository {
           .map((j) => Transaction.fromJson(j as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 404 || status == 401 || status == 403 || status == 400) {
+        return [];
+      }
       throw ApiErrorDecoder.decode(e);
     }
   }
