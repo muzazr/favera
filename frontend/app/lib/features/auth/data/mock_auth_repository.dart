@@ -97,7 +97,7 @@ class MockAuthRepository implements AuthRepository {
   Future<void> logout() async {
     errorPolicy.checkAndThrow();
     await latency.delay();
-    mockStore.currentUser = null;
+    mockStore.resetToSeed();
     await tokenStorage.clearTokens();
   }
 

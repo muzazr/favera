@@ -117,3 +117,10 @@ Fase ini menguji chatbot empati AI pendeteksi tensi finansial dan direktori kons
     - Klik salah satu profil ahli (misal: *Siti Rahma, M.Psi.*).
     - Anda dapat melihat detail keahlian, tarif, jadwal tersedia, serta tautan langsung untuk menghubungi ahli secara eksternal.
 
+---
+
+## 🏁 Panduan Pengujian Tuntas Kesiapan Sprint V1
+Untuk panduan pengujian menyeluruh (Part 0 s.d Part 14) beserta audit etika, privasi, sanitasi token, dan kriteria kelulusan rilis V1, silakan buka dokumen khusus:
+👉 **[SPRINT_V1_READY_TESTING_GUIDE.md](file:///c:/Users/zakia/Documents/0_CODING/Lomba/favera/frontend/app/docs/SPRINT_V1_READY_TESTING_GUIDE.md)**
+
+

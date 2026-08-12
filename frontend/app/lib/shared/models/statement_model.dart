@@ -40,16 +40,56 @@ class StatementImport {
   });
 
   factory StatementImport.fromJson(Map<String, dynamic> json) {
+    String rawId = json['id'] as String? ??
+        json['import_id'] as String? ??
+        json['statement_import_id'] as String? ??
+        json['statementImportId'] as String? ??
+        json['importId'] as String? ??
+        json['_id'] as String? ??
+        json['statement_id'] as String? ??
+        '';
+
+    if (rawId.isEmpty) {
+      // Check nested map if any
+      final nested = json['statement_import'] ?? json['import'] ?? json['data'];
+      if (nested is Map<String, dynamic>) {
+        rawId = nested['id'] as String? ??
+            nested['import_id'] as String? ??
+            nested['statement_import_id'] as String? ??
+            '';
+      }
+    }
+
+    if (rawId.isEmpty) {
+      rawId = 'stmt_${DateTime.now().millisecondsSinceEpoch}';
+    }
+
+    final rawFileName = json['file_name'] ??
+        json['filename'] ??
+        json['name'] ??
+        'e-statement.pdf';
+    final rawFileSize =
+        json['file_size_bytes'] ?? json['file_size'] ?? json['size'] ?? 0;
+    final rawStatus = json['status'] as String? ?? 'review_required';
+    final rawProvider =
+        json['provider_hint'] ?? json['provider'] ?? json['bank'] ?? 'other';
+    final rawUploadedAt = json['uploaded_at'] ??
+        json['created_at'] ??
+        json['uploaded'] ??
+        DateTime.now().toIso8601String();
+
     return StatementImport(
-      id: json['id'] as String,
-      fileName: json['file_name'] as String,
-      fileSizeBytes: (json['file_size_bytes'] as num).toInt(),
-      status: _parseStatus(json['status'] as String),
-      providerHint: json['provider_hint'] as String? ?? 'mandiri',
+      id: rawId,
+      fileName: rawFileName as String,
+      fileSizeBytes: (rawFileSize as num).toInt(),
+      status: _parseStatus(rawStatus),
+      providerHint: rawProvider as String,
       requiresPassword: json['requires_password'] as bool? ?? false,
       totalDetected: (json['total_detected'] as num? ?? 0).toInt(),
       needsReviewCount: (json['needs_review_count'] as num? ?? 0).toInt(),
-      uploadedAt: DateTime.parse(json['uploaded_at'] as String),
+      uploadedAt: rawUploadedAt is String
+          ? DateTime.tryParse(rawUploadedAt) ?? DateTime.now()
+          : DateTime.now(),
       errorMessage: json['error_message'] as String?,
     );
   }

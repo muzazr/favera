@@ -255,6 +255,7 @@ class _GoalFormPageState extends ConsumerState<GoalFormPage> {
                                       keyboardType: TextInputType.number,
                                       inputFormatters: [
                                         FilteringTextInputFormatter.digitsOnly,
+                                        ThousandsSeparatorInputFormatter(),
                                       ],
                                       onChanged: (val) {
                                         final parsed =

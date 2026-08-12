@@ -16,7 +16,7 @@ class FamilySuccessPage extends ConsumerWidget {
     final familySpace = ref.watch(familyControllerProvider).value;
     final user = ref.watch(authControllerProvider).value;
     final displayCode = familySpace?.inviteCode ?? 'TERHUBUNG';
-    final partnerName = familySpace?.partnerName ?? 'Pasangan';
+    final partnerName = familySpace?.getPartnerNameFor(user?.id) ?? 'Pasangan';
     final displayNameText = '${user?.name ?? 'Anda'} & $partnerName';
 
     return AppGradientBackground(

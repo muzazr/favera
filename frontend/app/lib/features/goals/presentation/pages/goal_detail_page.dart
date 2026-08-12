@@ -50,10 +50,13 @@ class GoalDetailPage extends ConsumerWidget {
               TextField(
                 controller: amountController,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  ThousandsSeparatorInputFormatter(),
+                ],
                 decoration: const InputDecoration(
                   labelText: 'Nominal (Rp)',
-                  hintText: '1000000',
+                  hintText: '1.000.000',
                 ),
               ),
             ],

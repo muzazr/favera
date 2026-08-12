@@ -31,12 +31,15 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    if (!_isPublicRoute(options.path) &&
-        !options.headers.containsKey('Authorization')) {
+    if (!_isPublicRoute(options.path)) {
       final token = await tokenStorage.getAccessToken();
       if (token != null && token.isNotEmpty) {
         options.headers['Authorization'] = 'Bearer $token';
+      } else {
+        options.headers.remove('Authorization');
       }
+    } else {
+      options.headers.remove('Authorization');
     }
     handler.next(options);
   }

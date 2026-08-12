@@ -14,6 +14,7 @@ abstract class StatementRepository {
   /// [documentPassword] is ephemeral — do NOT persist.
   Future<StatementImport> createStatementImport({
     required Uint8List fileBytes,
+    String? filePath,
     required String fileName,
     required String providerHint,
     String? documentPassword,
