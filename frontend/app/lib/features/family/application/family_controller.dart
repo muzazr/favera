@@ -44,13 +44,19 @@ final familyAssessmentControllerProvider =
   return repo.getCurrentFamilyAssessment();
 });
 
+final familyAssessmentNarrativeProvider = FutureProvider.family
+    .autoDispose<FamilyAssessmentNarrative?, String>((ref, assessmentId) async {
+  final repo = ref.watch(familyRepositoryProvider);
+  return repo.getFamilyAssessmentNarrative(assessmentId);
+});
+
 class FamilyController extends AsyncNotifier<FamilySpace?> {
-  late final FamilyRepository _repository;
+  FamilyRepository get _repository => ref.read(familyRepositoryProvider);
 
   @override
   Future<FamilySpace?> build() async {
-    _repository = ref.watch(familyRepositoryProvider);
-    final space = await _repository.getFamilySpace();
+    final repo = ref.watch(familyRepositoryProvider);
+    final space = await repo.getFamilySpace();
     _syncRouteState(space);
     return space;
   }

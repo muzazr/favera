@@ -8,6 +8,8 @@ import '../../../../core/formatters/currency_formatter.dart';
 import '../../../../core/widgets/app_async_view.dart';
 import '../../../../core/widgets/app_gradient_background.dart';
 import '../../application/dashboard_controller.dart';
+import '../../../auth/application/auth_controller.dart';
+import '../../../../shared/models/transaction_model.dart';
 import '../widgets/balance_hero_card.dart';
 import '../widgets/check_in_banner.dart';
 
@@ -17,6 +19,7 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardAsync = ref.watch(dashboardControllerProvider);
+    final user = ref.watch(authControllerProvider).value;
 
     return AppGradientBackground(
       child: Scaffold(
@@ -30,7 +33,8 @@ class HomePage extends ConsumerWidget {
                 ref.read(dashboardControllerProvider.notifier).refreshSummary(),
           ),
           data: (summary) {
-            final firstName = summary.userName.split(' ').first;
+            final displayName = user?.name ?? summary.userName;
+            final firstName = displayName.split(' ').first;
             final activeGoal = summary.activeGoal;
 
             return Column(
@@ -416,13 +420,20 @@ class HomePage extends ConsumerWidget {
                                     ),
 
                                     // Amount
-                                    Text(
-                                      '- ${CurrencyFormatter.format(tx.amount)}',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF111827),
-                                      ),
+                                    Builder(
+                                      builder: (context) {
+                                        final isInc = tx.direction == TransactionDirection.income;
+                                        return Text(
+                                          '${isInc ? "+" : "-"} ${CurrencyFormatter.format(tx.amount)}',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: isInc
+                                                ? const Color(0xFF10B981)
+                                                : const Color(0xFF111827),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),

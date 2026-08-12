@@ -9,6 +9,8 @@ import 'package:app/core/widgets/app_async_view.dart';
 import 'package:app/core/widgets/app_gradient_background.dart';
 import 'package:app/features/statements/presentation/widgets/statement_upload_modal.dart';
 import 'package:app/features/home/application/dashboard_controller.dart';
+import 'package:app/features/auth/application/auth_controller.dart';
+import 'package:app/features/goals/application/goal_controller.dart';
 import 'package:app/features/home/presentation/widgets/balance_hero_card.dart';
 import 'package:app/shared/models/transaction_model.dart';
 
@@ -18,6 +20,8 @@ class FinanceDashboardPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardAsync = ref.watch(dashboardControllerProvider);
+    final user = ref.watch(authControllerProvider).value;
+    final goalsList = ref.watch(goalListControllerProvider).value ?? [];
 
     return AppGradientBackground(
       child: Scaffold(
@@ -31,7 +35,8 @@ class FinanceDashboardPage extends ConsumerWidget {
                 ref.read(dashboardControllerProvider.notifier).refreshSummary(),
           ),
           data: (summary) {
-            final firstName = summary.userName.split(' ').first;
+            final displayName = user?.name ?? summary.userName;
+            final firstName = displayName.split(' ').first;
 
             return Column(
               children: [
@@ -164,37 +169,54 @@ class FinanceDashboardPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: AppSpacing.s8),
 
-                        // Horizontal Goal Cards Carousel
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              // Goal 1: Dana Darurat
-                              _buildGoalCard(
-                                context: context,
-                                goalId: 'goal-001',
-                                title: 'Dana Darurat',
-                                assetPath: AppAssets.danaDarurat,
-                                currentAmount: 6000000,
-                                targetAmount: 10000000,
-                                progressColor: const Color(0xFF10B981),
+                        // Horizontal Goal Cards Carousel (Dynamic from API)
+                        if (goalsList.isEmpty) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Belum ada target keuangan',
+                                style: TextStyle(
+                                  color: Color(0xFF9CA3AF),
+                                  fontSize: 13,
+                                ),
                               ),
-                              const SizedBox(width: 12),
-
-                              // Goal 2: Pendidikan
-                              _buildGoalCard(
-                                context: context,
-                                goalId: 'goal-002',
-                                title: 'Pendidikan',
-                                icon: Icons.school_rounded,
-                                iconColor: const Color(0xFFFF7418),
-                                currentAmount: 12000000,
-                                targetAmount: 20000000,
-                                progressColor: const Color(0xFFFF7418),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ] else ...[
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: goalsList.map((goal) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: _buildGoalCard(
+                                    context: context,
+                                    goalId: goal.id,
+                                    title: goal.name,
+                                    icon: Icons.savings_rounded,
+                                    iconColor: const Color(0xFF10B981),
+                                    currentAmount: goal.currentAmount,
+                                    targetAmount: goal.targetAmount,
+                                    progressColor: const Color(0xFF10B981),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: AppSpacing.s24),
 
                         // Action Buttons Stack (3 Buttons)

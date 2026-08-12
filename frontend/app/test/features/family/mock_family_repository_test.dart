@@ -62,5 +62,13 @@ void main() {
       expect(assessment?.level, equals(AssessmentLevel.stable));
       expect(assessment?.summaryText, contains('stabil'));
     });
+
+    test('getFamilyAssessmentNarrative returns mock narrative',
+        () async {
+      final narrative = await repository.getFamilyAssessmentNarrative('asm-001');
+      expect(narrative, isNotNull);
+      expect(narrative?.headline, equals('Aman & Terkendali'));
+      expect(narrative?.overview, contains('Budi dan Siti'));
+    });
   });
 }

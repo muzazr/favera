@@ -61,14 +61,24 @@ class RemoteGoalRepository implements GoalRepository {
   @override
   Future<FinancialGoal> createGoal(FinancialGoal goal) async {
     try {
-      // Send only CreateGoalRequest-compatible fields, no id/created_at.
+      final scheme = (goal.contributionScheme == 'manual' ||
+              goal.contributionScheme == 'shared_balance' ||
+              goal.contributionScheme == 'proportional')
+          ? goal.contributionScheme
+          : 'manual';
+      final prio = (goal.priority == 'very_important' ||
+              goal.priority == 'important' ||
+              goal.priority == 'flexible')
+          ? goal.priority
+          : 'important';
+
       final body = <String, dynamic>{
         'name': goal.name,
         'target_amount': goal.targetAmount,
-        'deadline': goal.deadline,
-        'theme_icon': goal.themeIcon,
-        'contribution_scheme': goal.contributionScheme,
-        'priority': goal.priority,
+        if (goal.deadline.isNotEmpty) 'deadline': goal.deadline,
+        if (goal.themeIcon.isNotEmpty) 'theme': goal.themeIcon,
+        'contribution_scheme': scheme,
+        'priority': prio,
       };
       final response = await _apiClient.dio.post('/goals', data: body);
       final raw = _unwrap(response.data);

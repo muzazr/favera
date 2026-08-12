@@ -203,4 +203,36 @@ class MockFamilyRepository implements FamilyRepository {
     await latency.delay();
     return mockStore.getCurrentFamilyAssessment();
   }
+
+  @override
+  Future<FamilyAssessmentNarrative?> getFamilyAssessmentNarrative(String assessmentId) async {
+    errorPolicy.checkAndThrow();
+    await latency.delay();
+    return FamilyAssessmentNarrative(
+      headline: 'Aman & Terkendali',
+      overview: 'Berdasarkan check-in mingguan terbaru, hubungan komunikasi Budi dan Siti berjalan sangat harmonis. Arus kas positif ditunjang oleh pemahaman bersama atas batas pengeluaran gaya hidup.',
+      actionPlan: const NarrativeActionPlan(
+        title: 'Rencana Aksi Finansial',
+        description: 'Pertahankan komitmen tabungan dan terus selaraskan pengeluaran harian.',
+      ),
+      encouragement: 'Teruskan keterbukaan ini untuk membangun ketahanan finansial masa depan!',
+      domainHighlights: const [
+        NarrativeDomainHighlight(
+          domain: 'Keuangan',
+          status: 'stable',
+          note: 'Arus kas positif dengan tingkat tabungan yang sehat.',
+        ),
+        NarrativeDomainHighlight(
+          domain: 'Komunikasi',
+          status: 'stable',
+          note: 'Komunikasi transparan dengan tingkat stres emosional yang rendah.',
+        ),
+      ],
+      meta: NarrativeMeta(
+        isPartial: false,
+        isFallback: false,
+        generatedAt: DateTime.now(),
+      ),
+    );
+  }
 }

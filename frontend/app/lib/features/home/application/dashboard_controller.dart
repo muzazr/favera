@@ -26,12 +26,12 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
 });
 
 class DashboardController extends AsyncNotifier<DashboardSummary> {
-  late final DashboardRepository _repository;
+  DashboardRepository get _repository => ref.read(dashboardRepositoryProvider);
 
   @override
   Future<DashboardSummary> build() async {
-    _repository = ref.watch(dashboardRepositoryProvider);
-    return await _repository.getDashboardSummary();
+    final repo = ref.watch(dashboardRepositoryProvider);
+    return await repo.getDashboardSummary();
   }
 
   Future<void> refreshSummary() async {

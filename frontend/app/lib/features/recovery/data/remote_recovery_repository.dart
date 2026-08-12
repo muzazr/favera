@@ -179,10 +179,14 @@ class RemoteRecoveryRepository implements RecoveryRepository {
   }
 
   @override
-  Future<Commitment> approveCommitment(String commitmentId) async {
+  Future<Commitment> approveCommitment({
+    required String commitmentId,
+    String action = 'approve',
+  }) async {
     try {
       final response = await apiClient.dio.post(
         '/commitments/$commitmentId/approval',
+        data: {'action': action},
       );
       final data = response.data['data'] as Map<String, dynamic>;
       return Commitment.fromJson(data);

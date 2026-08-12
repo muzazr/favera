@@ -20,6 +20,7 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   String _selectedCategory = 'Belanja';
+  String _visibility = 'shared';
   bool _isSaving = false;
 
   static const _incomeCategories = [
@@ -368,6 +369,117 @@ class _TransactionFormPageState extends ConsumerState<TransactionFormPage> {
                             ),
                           ),
                         ),
+                      ),
+                      const SizedBox(height: AppSpacing.s24),
+
+                      // Visibilitas Transaksi (Privat vs Dibagikan)
+                      const Text(
+                        'Visibilitas Transaksi',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _visibility = 'shared'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: _visibility == 'shared'
+                                      ? const Color(0xFFE6F7F0)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: _visibility == 'shared'
+                                        ? const Color(0xFF10B981)
+                                        : const Color(0xFFE5E7EB),
+                                    width: _visibility == 'shared' ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.people_outline_rounded,
+                                      size: 18,
+                                      color: _visibility == 'shared'
+                                          ? const Color(0xFF047857)
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Dibagikan',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: _visibility == 'shared'
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: _visibility == 'shared'
+                                            ? const Color(0xFF047857)
+                                            : const Color(0xFF374151),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () =>
+                                  setState(() => _visibility = 'private'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: _visibility == 'private'
+                                      ? const Color(0xFFFEF2F2)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: _visibility == 'private'
+                                        ? const Color(0xFFEF4444)
+                                        : const Color(0xFFE5E7EB),
+                                    width: _visibility == 'private' ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.lock_outline_rounded,
+                                      size: 18,
+                                      color: _visibility == 'private'
+                                          ? const Color(0xFFB91C1C)
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Privat Saya',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: _visibility == 'private'
+                                            ? FontWeight.bold
+                                            : FontWeight.w500,
+                                        color: _visibility == 'private'
+                                            ? const Color(0xFFB91C1C)
+                                            : const Color(0xFF374151),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -71,15 +71,50 @@ class RemoteTransactionRepository implements TransactionRepository {
   @override
   Future<Transaction> createTransaction(Transaction transaction) async {
     try {
+      final isoDate = transaction.date.toUtc().toIso8601String();
+      final apiCategory = _mapCategoryToApi(transaction.category);
+      final desc = transaction.description.trim().isNotEmpty
+          ? transaction.description.trim()
+          : 'Transaksi $apiCategory';
+
+      final body = <String, dynamic>{
+        'transaction_at': isoDate,
+        'direction': transaction.direction.apiValue,
+        'amount': transaction.amount,
+        'description': desc,
+        'category': apiCategory,
+        'visibility': 'shared',
+      };
+
       final response = await _apiClient.dio.post(
         '/transactions',
-        data: transaction.toJson(),
+        data: body,
       );
       final raw = _unwrap(response.data);
       return Transaction.fromJson(raw as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ApiErrorDecoder.decode(e);
     }
+  }
+
+  static String _mapCategoryToApi(String category) {
+    final lower = category.toLowerCase();
+    if (lower.contains('makan') || lower.contains('food')) return 'food';
+    if (lower.contains('tagihan') || lower.contains('listrik') || lower.contains('util')) return 'utilities';
+    if (lower.contains('transport')) return 'transportation';
+    if (lower.contains('belanja') || lower.contains('shop')) return 'shopping';
+    if (lower.contains('rumah') || lower.contains('house') || lower.contains('hous')) return 'housing';
+    if (lower.contains('sehat') || lower.contains('health')) return 'health';
+    if (lower.contains('didik') || lower.contains('edu')) return 'education';
+    if (lower.contains('hutang') || lower.contains('debt')) return 'debt';
+    if (lower.contains('tabung') || lower.contains('saving')) return 'savings';
+    if (lower.contains('gaji') || lower.contains('salary')) return 'salary';
+    if (lower.contains('usaha') || lower.contains('bisnis') || lower.contains('business')) return 'business_income';
+    if (lower.contains('invest')) return 'investment';
+    if (lower.contains('tarik') || lower.contains('cash')) return 'cash_withdrawal';
+    if (lower.contains('transf')) return 'transfer';
+    if (lower.contains('topup') || lower.contains('wallet')) return 'e_wallet_topup';
+    return 'other';
   }
 
   @override

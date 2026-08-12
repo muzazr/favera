@@ -184,6 +184,20 @@ class RemoteFamilyRepository implements FamilyRepository {
     required String concern,
   }) async {
     try {
+      // 1. Try saving answers as private draft (if supported by backend)
+      try {
+        await apiClient.dio.put(
+          '/check-ins/$checkInId/answers',
+          data: {
+            'my_emotion': emotion,
+            'main_concern': concern,
+          },
+        );
+      } catch (_) {
+        // Fall back if server expects answers payload directly on submit
+      }
+
+      // 2. Submit the check-in (including answers body payload for server compatibility)
       final response = await apiClient.dio.post(
         '/check-ins/$checkInId/submit',
         data: {
@@ -220,6 +234,19 @@ class RemoteFamilyRepository implements FamilyRepository {
       final data = _extractData(response.data) as Map<String, dynamic>?;
       if (data == null) return null;
       return FamilyAssessment.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      throw ApiErrorDecoder.decode(e);
+    }
+  }
+
+  @override
+  Future<FamilyAssessmentNarrative?> getFamilyAssessmentNarrative(String assessmentId) async {
+    try {
+      final response = await apiClient.dio.get('/family-assessments/$assessmentId');
+      final data = _extractData(response.data) as Map<String, dynamic>?;
+      if (data == null) return null;
+      return FamilyAssessmentNarrative.fromJson(data);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;
       throw ApiErrorDecoder.decode(e);

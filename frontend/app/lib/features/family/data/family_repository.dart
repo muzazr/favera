@@ -28,4 +28,5 @@ abstract class FamilyRepository {
   });
   Future<WeeklyCheckIn?> simulatePartnerSubmit(String checkInId);
   Future<FamilyAssessment?> getCurrentFamilyAssessment();
+  Future<FamilyAssessmentNarrative?> getFamilyAssessmentNarrative(String assessmentId);
 }
