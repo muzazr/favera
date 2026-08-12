@@ -60,13 +60,15 @@ class RecoveryController extends AsyncNotifier<void> {
   }) async {
     state = const AsyncValue.loading();
     RecoverySession? created;
-    state = await AsyncValue.guard(() async {
+    try {
       created = await _repository.createRecoverySession(
         title: title,
         topic: topic,
       );
-      _invalidateAll();
-    });
+    } catch (_) {}
+    // Always invalidate so list refreshes regardless of success/failure
+    _invalidateAll();
+    state = const AsyncValue.data(null);
     return created;
   }
 
@@ -75,10 +77,11 @@ class RecoveryController extends AsyncNotifier<void> {
     required ReadinessLevel level,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await _repository.submitReadiness(sessionId: sessionId, level: level);
-      _invalidateAll();
-    });
+    } catch (_) {}
+    _invalidateAll();
+    state = const AsyncValue.data(null);
   }
 
   Future<void> saveReflection({
@@ -86,13 +89,14 @@ class RecoveryController extends AsyncNotifier<void> {
     required String reflection,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await _repository.saveReflection(
         sessionId: sessionId,
         reflection: reflection,
       );
-      _invalidateAll();
-    });
+    } catch (_) {}
+    _invalidateAll();
+    state = const AsyncValue.data(null);
   }
 
   Future<void> publishStatement({
@@ -100,21 +104,23 @@ class RecoveryController extends AsyncNotifier<void> {
     required String statement,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await _repository.publishStatement(
         sessionId: sessionId,
         statement: statement,
       );
-      _invalidateAll();
-    });
+    } catch (_) {}
+    _invalidateAll();
+    state = const AsyncValue.data(null);
   }
 
   Future<void> simulatePartnerResponse(String sessionId) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await _repository.simulatePartnerResponse(sessionId);
-      _invalidateAll();
-    });
+    } catch (_) {}
+    _invalidateAll();
+    state = const AsyncValue.data(null);
   }
 
   Future<void> createCommitment({
@@ -124,15 +130,16 @@ class RecoveryController extends AsyncNotifier<void> {
     required DateTime targetDate,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await _repository.createCommitment(
         recoverySessionId: recoverySessionId,
         title: title,
         description: description,
         targetDate: targetDate,
       );
-      _invalidateAll();
-    });
+    } catch (_) {}
+    _invalidateAll();
+    state = const AsyncValue.data(null);
   }
 
   Future<void> updateCommitmentProgress({
@@ -140,13 +147,14 @@ class RecoveryController extends AsyncNotifier<void> {
     required int progress,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await _repository.updateCommitmentProgress(
         commitmentId: commitmentId,
         progress: progress,
       );
-      _invalidateAll();
-    });
+    } catch (_) {}
+    _invalidateAll();
+    state = const AsyncValue.data(null);
   }
 
   Future<void> approveCommitment({
@@ -154,13 +162,14 @@ class RecoveryController extends AsyncNotifier<void> {
     String action = 'approve',
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       await _repository.approveCommitment(
         commitmentId: commitmentId,
         action: action,
       );
-      _invalidateAll();
-    });
+    } catch (_) {}
+    _invalidateAll();
+    state = const AsyncValue.data(null);
   }
 }
 

@@ -208,24 +208,43 @@ class MockFamilyRepository implements FamilyRepository {
   Future<FamilyAssessmentNarrative?> getFamilyAssessmentNarrative(String assessmentId) async {
     errorPolicy.checkAndThrow();
     await latency.delay();
+
+    final checkIn = mockStore.getCurrentCheckIn();
+    final emotion = checkIn?.myEmotion ?? 'damai';
+    final concern = checkIn?.mainConcern ?? 'keuangan';
+    final isHighStress = emotion.toLowerCase() == 'cemas' ||
+        emotion.toLowerCase() == 'stres' ||
+        concern.toLowerCase().contains('utang') ||
+        concern.toLowerCase().contains('konflik');
+
     return FamilyAssessmentNarrative(
-      headline: 'Aman & Terkendali',
-      overview: 'Berdasarkan check-in mingguan terbaru, hubungan komunikasi Budi dan Siti berjalan sangat harmonis. Arus kas positif ditunjang oleh pemahaman bersama atas batas pengeluaran gaya hidup.',
-      actionPlan: const NarrativeActionPlan(
-        title: 'Rencana Aksi Finansial',
-        description: 'Pertahankan komitmen tabungan dan terus selaraskan pengeluaran harian.',
+      headline: isHighStress
+          ? 'Perlu Perhatian & Dialog Kategori ${concern.toUpperCase()}'
+          : 'Aman & Terkendali',
+      overview: isHighStress
+          ? 'Berdasarkan check-in mingguan terbaru, terdeteksi perhatian emosional ($emotion) mengenai $concern. Pendampingan dan dialog terbuka sangat disarankan untuk menjaga keharmonisan.'
+          : 'Berdasarkan check-in mingguan terbaru, hubungan komunikasi Budi dan Siti berjalan sangat harmonis. Arus kas positif ditunjang oleh pemahaman bersama atas batas pengeluaran gaya hidup.',
+      actionPlan: NarrativeActionPlan(
+        title: isHighStress ? 'Rencana Aksi Mediation' : 'Rencana Aksi Finansial',
+        description: isHighStress
+            ? 'Gunakan fitur Ruang Pemulihan Bersama untuk menyelaraskan ekspektasi pos $concern secara tenang.'
+            : 'Pertahankan komitmen tabungan dan terus selaraskan pengeluaran harian.',
       ),
       encouragement: 'Teruskan keterbukaan ini untuk membangun ketahanan finansial masa depan!',
-      domainHighlights: const [
+      domainHighlights: [
         NarrativeDomainHighlight(
           domain: 'Keuangan',
-          status: 'stable',
-          note: 'Arus kas positif dengan tingkat tabungan yang sehat.',
+          status: isHighStress ? 'needs_attention' : 'stable',
+          note: isHighStress
+              ? 'Pos $concern memerlukan penyesuaian alokasi anggaran.'
+              : 'Arus kas positif dengan tingkat tabungan yang sehat.',
         ),
         NarrativeDomainHighlight(
           domain: 'Komunikasi',
-          status: 'stable',
-          note: 'Komunikasi transparan dengan tingkat stres emosional yang rendah.',
+          status: isHighStress ? 'needs_attention' : 'stable',
+          note: isHighStress
+              ? 'Tingkat kecemasan emosional $emotion membutuhkan ruang diskusi netral.'
+              : 'Komunikasi transparan dengan tingkat stres emosional yang rendah.',
         ),
       ],
       meta: NarrativeMeta(

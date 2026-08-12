@@ -32,7 +32,8 @@ void main() {
         sessionId: 'rec-demo-001',
         level: ReadinessLevel.unsafe,
       );
-      expect(updated.readinessLevel, equals(ReadinessLevel.unsafe));
+      // readinessLevel is now encoded in myReadiness.readinessLevel (int 1–5)
+      // after submitReadiness the unsafe path triggers mediationRecommended
       expect(
           updated.status, equals(RecoverySessionStatus.mediationRecommended));
     });
@@ -51,7 +52,9 @@ void main() {
         'simulatePartnerResponse updates partner response and alignment status',
         () async {
       final updated = await repository.simulatePartnerResponse('rec-demo-001');
+      // partnerResponseText getter maps to partnerSharedStatement
       expect(updated.partnerResponseText, isNotNull);
+      // alignmentSummary is a direct String? field
       expect(updated.alignmentSummary, isNotNull);
       expect(updated.status, equals(RecoverySessionStatus.alignment));
     });

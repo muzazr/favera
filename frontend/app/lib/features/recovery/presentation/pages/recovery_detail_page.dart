@@ -144,7 +144,7 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                session.topic,
+                                session.topic.displayLabel,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
@@ -241,11 +241,14 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
             color: const Color(0xFF10B981),
             title: 'Saya Siap & Merasa Aman',
             subtitle: 'Saya tenang dan bersedia berdiskusi secara sehat.',
-            onTap: () {
-              ref.read(recoveryControllerProvider.notifier).submitReadiness(
+            onTap: () async {
+              await ref
+                  .read(recoveryControllerProvider.notifier)
+                  .submitReadiness(
                     sessionId: session.id,
                     level: ReadinessLevel.ready,
                   );
+              ref.invalidate(recoverySessionDetailProvider(session.id));
             },
           ),
           const SizedBox(height: 12),
@@ -256,11 +259,14 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
             color: const Color(0xFFF59E0B),
             title: 'Saya Butuh Waktu Sejenak',
             subtitle: 'Saya ingin jeda sejenak untuk menenangkan pikiran.',
-            onTap: () {
-              ref.read(recoveryControllerProvider.notifier).submitReadiness(
+            onTap: () async {
+              await ref
+                  .read(recoveryControllerProvider.notifier)
+                  .submitReadiness(
                     sessionId: session.id,
                     level: ReadinessLevel.needTime,
                   );
+              ref.invalidate(recoverySessionDetailProvider(session.id));
             },
           ),
           const SizedBox(height: 12),
@@ -272,11 +278,14 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
             title: 'Saya Merasa Tidak Aman / Tertekan',
             subtitle:
                 'Hentikan diskusi ini dan dapatkan arahan ke tenaga profesional.',
-            onTap: () {
-              ref.read(recoveryControllerProvider.notifier).submitReadiness(
+            onTap: () async {
+              await ref
+                  .read(recoveryControllerProvider.notifier)
+                  .submitReadiness(
                     sessionId: session.id,
                     level: ReadinessLevel.unsafe,
                   );
+              ref.invalidate(recoverySessionDetailProvider(session.id));
             },
           ),
         ],
@@ -524,6 +533,7 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
                       sessionId: session.id,
                       statement: statement,
                     );
+                ref.invalidate(recoverySessionDetailProvider(session.id));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
@@ -632,10 +642,11 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: () {
-                ref
+              onPressed: () async {
+                await ref
                     .read(recoveryControllerProvider.notifier)
                     .simulatePartnerResponse(session.id);
+                ref.invalidate(recoverySessionDetailProvider(session.id));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4F46E5),
@@ -804,13 +815,16 @@ class _RecoveryDetailPageState extends ConsumerState<RecoveryDetailPage> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton(
-              onPressed: () {
-                ref.read(recoveryControllerProvider.notifier).createCommitment(
+              onPressed: () async {
+                await ref
+                    .read(recoveryControllerProvider.notifier)
+                    .createCommitment(
                       recoverySessionId: session.id,
                       title: _commitmentTitleController.text.trim(),
                       description: _commitmentDescController.text.trim(),
                       targetDate: DateTime.now().add(const Duration(days: 30)),
                     );
+                ref.invalidate(recoverySessionDetailProvider(session.id));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
