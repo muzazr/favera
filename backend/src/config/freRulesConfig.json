@@ -1,0 +1,31 @@
+{
+  "version": "fre-v0.1.0",
+  "assessment_window_days": 7,
+  "trend": {
+    "reference_weeks": 2,
+    "worsening_delta": 8,
+    "improving_delta": -8,
+    "downgrade_confirmation_weeks": 2
+  },
+  "risk_levels": {
+    "stable_max_exclusive": 30,
+    "attention_max_exclusive": 60
+  },
+  "domain_weights": {
+    "financial_harm": 0.30,
+    "relationship_strain": 0.30,
+    "emotional_strain": 0.25,
+    "recovery_nonadherence": 0.15
+  },
+  "safety_override": {
+    "enabled": true,
+    "trigger_fields": [
+      "feels_threatened",
+      "physical_violence_reported",
+      "self_harm_concern",
+      "harm_to_others_concern",
+      "immediate_emergency"
+    ]
+  },
+  "reason_code_limit": 3
+}
